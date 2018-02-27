@@ -2,32 +2,38 @@ module App exposing (..)
 
 import Html exposing (Html, button, div, text, nav, a)
 import Html.Events exposing (onClick)
+import RouteUrl.Builder as Builder exposing (Builder)
 import Navigation
 import RouteUrl
-import RouteUrl.Builder as Builder exposing (Builder)
 import YouLaughYouLose
 import MemeReview
+import Routing
 
 
 -- MODEL
 
 
-type ActiveView
+type View
     = MemeReview
     | YouLaughYouLose
 
 
 type alias Model =
     { visited : Bool
-    , activeView : ActiveView
     , memeReview : MemeReview.Model
     , youLaughYouLose : YouLaughYouLose.Model
+    , routing : Routing.Model View
     }
+
+
+type RouteModel
+    = MemeReviewModel MemeReview.Model
+    | YouLaughYouLoseModel YouLaughYouLose.Model
 
 
 init : ( Model, Cmd Action )
 init =
-    ( Model False MemeReview MemeReview.init YouLaughYouLose.init
+    ( Model False MemeReview.init YouLaughYouLose.init <| Routing.init MemeReview
     , Cmd.none
     )
 
@@ -38,7 +44,7 @@ init =
 
 type Action
     = EnterSite
-    | ChangeView ActiveView
+    | RoutingAction (Routing.Action View)
     | MemeReviewAction MemeReview.Action
     | YouLaughYouLoseAction YouLaughYouLose.Action
 
@@ -49,8 +55,8 @@ update msg model =
         EnterSite ->
             ( { model | visited = True }, Cmd.none )
 
-        ChangeView view ->
-            ( { model | activeView = view }, Cmd.none )
+        RoutingAction subaction ->
+            ( { model | routing = Routing.update subaction model.routing }, Cmd.none )
 
         MemeReviewAction subaction ->
             ( { model | memeReview = MemeReview.update subaction model.memeReview }, Cmd.none )
@@ -76,20 +82,25 @@ view : Model -> Html Action
 view model =
     let
         activeView =
-            case model.activeView of
-                MemeReview ->
-                    Html.map MemeReviewAction (MemeReview.view model.memeReview)
-
-                YouLaughYouLose ->
-                    Html.map YouLaughYouLoseAction (YouLaughYouLose.view model.youLaughYouLose)
+            Routing.view model.routing <| viewRoute model
     in
         div []
             [ nav []
-                [ a [ onClick (ChangeView MemeReview) ] [ text "Meme Review" ]
-                , a [ onClick (ChangeView YouLaughYouLose) ] [ text "You Laugh. You Lose." ]
+                [ a [ onClick (RoutingAction <| Routing.ChangeView MemeReview) ] [ text "Meme Review" ]
+                , a [ onClick (RoutingAction <| Routing.ChangeView YouLaughYouLose) ] [ text "You Laugh. You Lose." ]
                 ]
             , div [] [ activeView ]
             ]
+
+
+viewRoute : Model -> View -> Html Action
+viewRoute model view =
+    case view of
+        MemeReview ->
+            Html.map MemeReviewAction (MemeReview.view model.memeReview)
+
+        YouLaughYouLose ->
+            Html.map YouLaughYouLoseAction (YouLaughYouLose.view model.youLaughYouLose)
 
 
 
@@ -112,7 +123,7 @@ location2messages location =
 
 delta2builder : Model -> Model -> Maybe Builder
 delta2builder previous current =
-    case current.activeView of
+    case current.routing.activeView of
         MemeReview ->
             MemeReview.delta2builder previous.memeReview current.memeReview
                 |> Maybe.map (Builder.prependToPath [ "meme-review" ])
@@ -123,22 +134,18 @@ delta2builder previous current =
 
 
 builder2messages : Builder -> List Action
-builder2messages builder =
-    case Builder.path builder of
-        first :: rest ->
-            let
-                subBuilder =
-                    Builder.replacePath rest builder
-            in
-                case first of
-                    "meme-review" ->
-                        (ChangeView MemeReview) :: List.map MemeReviewAction (MemeReview.builder2messages subBuilder)
+builder2messages =
+    Routing.builder2messages (RoutingAction <| Routing.ChangeView MemeReview) handleLocation
 
-                    "you-laug-you-lose" ->
-                        (ChangeView YouLaughYouLose) :: List.map YouLaughYouLoseAction (YouLaughYouLose.builder2messages subBuilder)
 
-                    _ ->
-                        [ ChangeView MemeReview ]
+handleLocation : Routing.LocationHandler Action
+handleLocation path builder =
+    case path of
+        "meme-review" ->
+            (RoutingAction <| Routing.ChangeView MemeReview) :: List.map MemeReviewAction (MemeReview.builder2messages builder)
+
+        "you-laugh-you-lose" ->
+            (RoutingAction <| Routing.ChangeView YouLaughYouLose) :: List.map YouLaughYouLoseAction (YouLaughYouLose.builder2messages builder)
 
         _ ->
-            [ ChangeView MemeReview ]
+            [ RoutingAction <| Routing.ChangeView MemeReview ]
