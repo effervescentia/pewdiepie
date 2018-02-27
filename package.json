@@ -1,0 +1,18 @@
+{
+  "name": "pewdiepie",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "git@github.com:effervescentia/pewdiepie.git",
+  "author": "Ben Teichman <ben.l.teichman@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "devDependencies": {
+    "css-loader": "^0.28.10",
+    "elm-webpack-loader": "^4.4.0",
+    "file-loader": "^1.1.10",
+    "style-loader": "^0.20.2",
+    "url-loader": "^0.6.2",
+    "webpack": "^4.0.1",
+    "webpack-dev-server": "^3.0.0"
+  }
+}
