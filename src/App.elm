@@ -1,13 +1,13 @@
 module App exposing (..)
 
 import Html exposing (Html, button, div, text, nav, a)
-import Html.Events exposing (onClick)
 import RouteUrl.Builder as Builder exposing (Builder)
 import Navigation
 import RouteUrl
 import YouLaughYouLose
 import MemeReview
 import Routing
+import Header
 
 
 -- MODEL
@@ -81,15 +81,18 @@ subscriptions model =
 view : Model -> Html Action
 view model =
     let
+        header =
+            Header.view
+                [ ( "meme-review", "Meme Review", RoutingAction <| Routing.ChangeView MemeReview )
+                , ( "you-laugh-you-lose", "You Laugh. You Lose.", RoutingAction <| Routing.ChangeView YouLaughYouLose )
+                ]
+
         activeView =
             Routing.view model.routing <| viewRoute model
     in
         div []
-            [ nav []
-                [ a [ onClick (RoutingAction <| Routing.ChangeView MemeReview) ] [ text "Meme Review" ]
-                , a [ onClick (RoutingAction <| Routing.ChangeView YouLaughYouLose) ] [ text "You Laugh. You Lose." ]
-                ]
-            , div [] [ activeView ]
+            [ header
+            , activeView
             ]
 
 
