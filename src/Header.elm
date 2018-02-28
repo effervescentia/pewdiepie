@@ -38,27 +38,6 @@ styles =
 
 
 
--- type alias Styles =
---     List ( String, String )
---
---
--- type alias StylesMap =
---     { root : Styles
---     , list : Styles
---     , link : Styles
---     }
---
---
--- styles : StylesMap
--- styles =
---     { root =
---         [ background "black"
---         ]
---     , list =
---         [ display "flex"
---         ]
---     , link = []
---     }
 -- VIEW
 
 
