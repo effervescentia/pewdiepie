@@ -1,9 +1,9 @@
 module YouLaughYouLose exposing (..)
 
 import Dict
-import Html exposing (Html, button, div, text)
-import Html.Attributes exposing (type_)
-import Html.Events exposing (onClick)
+import Html.Styled exposing (Html, button, div, text)
+import Html.Styled.Attributes exposing (type_)
+import Html.Styled.Events exposing (onClick)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import String exposing (toInt)
 

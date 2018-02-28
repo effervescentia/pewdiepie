@@ -1,50 +1,88 @@
 module Header exposing (..)
 
-import Element exposing (Element, el, link, text)
-import Element.Events as Events exposing (defaultOptions)
-import Html exposing (Html)
+import Css exposing (Style, backgroundColor, color)
+import Css.Colors exposing (black, white)
+import Html.Styled exposing (Html, a, header, li, nav, text, ul)
+import Html.Styled.Attributes exposing (css, href, style)
+import Html.Styled.Events as Events exposing (onWithOptions)
 import Json.Decode as Decode
-import Style
+
+
+-- CONSTANTS
+
+
+clickOptions : Events.Options
+clickOptions =
+    { preventDefault = True
+    , stopPropagation = False
+    }
+
 
 
 -- STYLE
 
 
-type Classes
-    = Root
-    | Link
+type alias Styles =
+    { root : List Style
+    , list : List Style
+    , link : List Style
+    }
 
 
-stylesheet : Style.StyleSheet Classes variation
-stylesheet =
-    Style.styleSheet
-        [ Style.style Link []
-        ]
+styles : Styles
+styles =
+    { root = [ backgroundColor black ]
+    , list = []
+    , link = [ color white ]
+    }
 
 
 
+-- type alias Styles =
+--     List ( String, String )
+--
+--
+-- type alias StylesMap =
+--     { root : Styles
+--     , list : Styles
+--     , link : Styles
+--     }
+--
+--
+-- styles : StylesMap
+-- styles =
+--     { root =
+--         [ background "black"
+--         ]
+--     , list =
+--         [ display "flex"
+--         ]
+--     , link = []
+--     }
 -- VIEW
 
 
 view : List ( String, String, msg ) -> Html msg
 view links =
-    Html.header []
-        [ Html.nav [] <|
-            List.map viewLink links
+    header [ css styles.root ]
+        [ nav []
+            [ ul [] <|
+                List.map toNavigationOption links
+            ]
         ]
 
 
-viewLink : ( String, String, msg ) -> Html msg
-viewLink ( url, label, handler ) =
-    let
-        options =
-            { preventDefault = True
-            , stopPropagation = False
-            }
 
-        decode =
-            Decode.succeed handler
-    in
-        Element.layout stylesheet <|
-            link url <|
-                el Link [ Events.onWithOptions "click" options decode ] (text label)
+-- FUNCTIONS
+
+
+toNavigationOption : ( String, String, msg ) -> Html msg
+toNavigationOption ( url, label, handler ) =
+    li []
+        [ a
+            [ href <| "/" ++ url
+            , onWithOptions "click" clickOptions <| Decode.succeed handler
+            , css styles.link
+            ]
+            [ text label ]
+        ]

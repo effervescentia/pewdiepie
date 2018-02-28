@@ -6,13 +6,15 @@
   "author": "Ben Teichman <ben.l.teichman@gmail.com>",
   "license": "MIT",
   "private": true,
+  "scripts": {
+    "build": "webpack",
+    "start": "webpack-dev-server --open"
+  },
   "devDependencies": {
-    "css-loader": "^0.28.10",
+    "elm": "^0.18.0",
     "elm-webpack-loader": "^4.4.0",
-    "file-loader": "^1.1.10",
-    "style-loader": "^0.20.2",
-    "url-loader": "^0.6.2",
-    "webpack": "^4.0.1",
-    "webpack-dev-server": "^3.0.0"
+    "html-webpack-plugin": "^2.30.1",
+    "webpack": "2.7.0",
+    "webpack-dev-server": "2.11.2"
   }
 }

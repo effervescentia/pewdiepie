@@ -1,6 +1,6 @@
 module Routing exposing (..)
 
-import Html exposing (Html, div)
+import Html.Styled exposing (Html, div)
 import RouteUrl.Builder as Builder exposing (Builder)
 
 

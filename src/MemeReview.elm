@@ -1,9 +1,9 @@
 module MemeReview exposing (..)
 
 import Dict
-import Html exposing (Html, div, text, button)
-import Html.Attributes exposing (type_)
-import Html.Events exposing (onClick)
+import Html.Styled exposing (Html, div, text, button)
+import Html.Styled.Attributes exposing (type_)
+import Html.Styled.Events exposing (onClick)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import String exposing (toInt)
 

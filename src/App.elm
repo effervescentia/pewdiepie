@@ -1,13 +1,13 @@
 module App exposing (..)
 
-import Html exposing (Html, button, div, text, nav, a)
-import RouteUrl.Builder as Builder exposing (Builder)
+import Header
+import Html.Styled as Html exposing (Html, a, button, div, nav, text)
+import MemeReview
 import Navigation
 import RouteUrl
-import YouLaughYouLose
-import MemeReview
+import RouteUrl.Builder as Builder exposing (Builder)
 import Routing
-import Header
+import YouLaughYouLose
 
 
 -- MODEL
