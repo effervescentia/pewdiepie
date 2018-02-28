@@ -26,11 +26,6 @@ type alias Model =
     }
 
 
-type RouteModel
-    = MemeReviewModel MemeReview.Model
-    | YouLaughYouLoseModel YouLaughYouLose.Model
-
-
 init : ( Model, Cmd Action )
 init =
     ( Model False MemeReview.init YouLaughYouLose.init <| Routing.init MemeReview
@@ -100,10 +95,10 @@ viewRoute : Model -> View -> Html Action
 viewRoute model view =
     case view of
         MemeReview ->
-            Html.map MemeReviewAction (MemeReview.view model.memeReview)
+            Html.map MemeReviewAction <| MemeReview.view model.memeReview
 
         YouLaughYouLose ->
-            Html.map YouLaughYouLoseAction (YouLaughYouLose.view model.youLaughYouLose)
+            Html.map YouLaughYouLoseAction <| YouLaughYouLose.view model.youLaughYouLose
 
 
 
