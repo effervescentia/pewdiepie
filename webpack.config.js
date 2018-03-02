@@ -1,4 +1,5 @@
 const path = require('path');
+const ExtractTextPlugin = require("extract-text-webpack-plugin");
 const HtmlPlugin = require('html-webpack-plugin');
 
 module.exports = {
@@ -12,13 +13,14 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.js', '.elm'],
+    extensions: ['.js', '.elm', '.css'],
   },
 
   plugins: [
     new HtmlPlugin({
       template: 'index.html'
     }),
+    new ExtractTextPlugin("styles.css"),
   ],
 
   module: {
@@ -31,13 +33,19 @@ module.exports = {
         {
           loader: 'elm-webpack-loader',
           options: {
-            cache: true,
             verbose: true,
             warn: true,
             debug: true
           }
         }
       ]
+
+    }, {
+      test: /\.css$/,
+      use: ExtractTextPlugin.extract({
+        fallback: "style-loader",
+        use: "css-loader"
+      }),
     }],
   },
 

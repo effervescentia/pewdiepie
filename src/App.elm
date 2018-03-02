@@ -76,11 +76,16 @@ subscriptions model =
 view : Model -> Html Action
 view model =
     let
+        handleRoute view =
+            RoutingAction <| Routing.ChangeView view
+
         header =
             Header.view
-                [ ( "meme-review", "Meme Review", RoutingAction <| Routing.ChangeView MemeReview )
-                , ( "you-laugh-you-lose", "You Laugh. You Lose.", RoutingAction <| Routing.ChangeView YouLaughYouLose )
+                [ ( "meme-review", "Meme Review", MemeReview )
+                , ( "you-laugh-you-lose", "You Laugh. You Lose.", YouLaughYouLose )
                 ]
+                model.routing.activeView
+                handleRoute
 
         activeView =
             Routing.view model.routing <| viewRoute model
