@@ -1,6 +1,6 @@
 module Header exposing (..)
 
-import Css exposing (Style, absolute, backgroundColor, center, color, displayFlex, flex, hidden, left, margin, num, overflowX, padding2, pct, position, px, relative, right, textAlign, top, transform, translateX, translateY, vw, width, zero)
+import Css exposing (Style, absolute, backgroundColor, center, color, displayFlex, flex, hidden, left, margin, num, overflowX, padding2, pct, position, property, px, relative, right, textAlign, top, transform, translateX, translateY, vw, width, zero)
 import Css.Colors exposing (black, white)
 import Html.Styled exposing (Html, a, header, li, nav, text, ul)
 import Html.Styled.Attributes exposing (css, href, style)
@@ -52,11 +52,11 @@ styles =
     , list =
         [ displayFlex
         , margin zero
-        , padding2 (px 16) (px 8)
         , textAlign center
         ]
     , listItem =
         [ flex (num 1)
+        , padding2 (px 16) (px 8)
         ]
     , link = [ color white ]
     , navLink =
@@ -85,33 +85,36 @@ view links activeView changeView =
                     -1
 
         backLink =
-            case links |> List.take activeIndex |> List.head of
-                Just route ->
-                    viewLink route changeView Back
-
-                Nothing ->
-                    text ""
+            conditionalLink (List.take activeIndex links) activeIndex Back changeView
 
         nextLink =
-            case links |> List.drop (activeIndex + 1) |> List.head of
-                Just route ->
-                    viewLink route changeView Next
-
-                Nothing ->
-                    text ""
+            conditionalLink (List.drop (activeIndex + 1) links) activeIndex Next changeView
     in
         header [ css styles.root ]
             [ nav [ css styles.navbar ]
-                [ backLink
-                , ul
+                [ ul
                     [ css styles.list
-                    , css [ transform <| translateX (pct <| toFloat <| -100 // List.length links * activeIndex) ]
+                    , css
+                        [ transform <| translateX (pct <| toFloat <| -100 // List.length links * activeIndex)
+                        , property "transition" "transform 1s ease"
+                        ]
                     ]
                   <|
                     List.map (toNavigationOption changeView) links
+                , backLink
                 , nextLink
                 ]
             ]
+
+
+conditionalLink : List ( String, String, view ) -> Int -> LinkVariant -> (view -> msg) -> Html msg
+conditionalLink links activeIndex variant changeView =
+    case List.head links of
+        Just route ->
+            viewLink route changeView variant
+
+        Nothing ->
+            text ""
 
 
 viewLink : ( String, String, view ) -> (view -> msg) -> LinkVariant -> Html msg
