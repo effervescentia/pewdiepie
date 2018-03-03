@@ -2,7 +2,6 @@ module MemeReview exposing (..)
 
 import Css exposing (Style, absolute, alignItems, backgroundColor, center, column, displayFlex, flexDirection, height, int, justifyContent, margin, num, padding, pct, position, property, px, transform, translateX, width, zIndex, zero)
 import Css.Colors exposing (black)
-import Dict
 import Html.Styled exposing (Html, button, div, fromUnstyled, text)
 import Html.Styled.Attributes exposing (css, type_)
 import InlineSvg exposing (inline)
@@ -11,7 +10,6 @@ import Meme
 import Memes exposing (memes)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import Slider
-import String exposing (toInt)
 
 
 -- CONSTANTS
@@ -26,15 +24,13 @@ import String exposing (toInt)
 
 
 type alias Model =
-    { laughed : Int
-    , lost : Int
-    , activeIndex : Int
+    { activeIndex : Int
     }
 
 
 init : Model
 init =
-    Model 0 0 0
+    Model 0
 
 
 
@@ -42,25 +38,13 @@ init =
 
 
 type Action
-    = Laugh
-    | Lose
-    | SetCounts Int Int
-    | ChangeMeme Int
+    = ChangeMeme Int
     | HandleKeypress KeyCode
 
 
 update : Action -> Model -> Model
 update action model =
     case action of
-        Laugh ->
-            { model | laughed = model.laughed + 1 }
-
-        Lose ->
-            { model | lost = model.lost + 1 }
-
-        SetCounts laughed lost ->
-            { model | laughed = laughed, lost = lost }
-
         ChangeMeme index ->
             { model | activeIndex = index }
 
@@ -152,39 +136,13 @@ view { activeIndex } =
 
 
 -- ROUTING
--- needed to set the url when routing
 
 
 delta2builder : Model -> Model -> Maybe Builder
 delta2builder previous current =
-    builder
-        |> replaceQuery
-            [ ( "laughed", toString current.laughed )
-            , ( "lost", toString current.lost )
-            ]
-        |> Just
-
-
-
--- only needed if I want the component to set its state from the URL
+    Just builder
 
 
 builder2messages : Builder -> List Action
 builder2messages builder =
-    case query builder of
-        queryParams ->
-            let
-                queryDict =
-                    Dict.fromList queryParams
-            in
-                case ( Dict.get "laughed" queryDict, Dict.get "lost" queryDict ) of
-                    ( Just laughed, Just lost ) ->
-                        case ( toInt laughed, toInt lost ) of
-                            ( Ok laugh, Ok lose ) ->
-                                [ SetCounts laugh lose ]
-
-                            _ ->
-                                []
-
-                    _ ->
-                        []
+    []

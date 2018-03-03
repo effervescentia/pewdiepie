@@ -5,20 +5,10 @@ import Css.Colors exposing (white)
 import Html.Styled exposing (Html, div, fromUnstyled, h1, img, text)
 import Html.Styled.Attributes exposing (css, src)
 import Images exposing (Asset)
-import InlineSvg exposing (inline)
+import Rating
+import Styles exposing (animatedLoop)
 import Svg.Styled exposing (ellipse, svg)
 import Svg.Styled.Attributes exposing (cx, cy, rx, ry)
-
-
--- CONSTANTS
-
-
-{ icon } =
-    inline
-        { pewds = "../../assets/pewds.svg"
-        , speechBubble = "../../assets/speech_bubble2.svg"
-        }
-
 
 
 -- MODEL
@@ -42,20 +32,7 @@ type alias Styles =
     , image : List Style
     , shadow : List Style
     , title : List Style
-    , rating : List Style
-    , speechBubble : List Style
-    , pewds : List Style
     }
-
-
-animatedLoop : Style
-animatedLoop =
-    Css.batch
-        [ property "animation-duration" "5s"
-        , property "animation-fill-mode" "both"
-        , property "animation-timing-function" "linear"
-        , property "animation-iteration-count" "infinite"
-        ]
 
 
 styles : Styles
@@ -71,7 +48,7 @@ styles =
     , imageContainer =
         [ marginBottom (px 24)
         , property "animation-name" "bounce"
-        , animatedLoop
+        , animatedLoop 5
         ]
     , image =
         [ position relative
@@ -82,31 +59,13 @@ styles =
         [ property "filter" "blur(24px) opacity(.6)"
         , property "animation-name" "swell"
         , zIndex (int -1)
-        , animatedLoop
+        , animatedLoop 5
         ]
     , title =
         [ position absolute
         , top zero
         , margin2 (px 16) zero
         , color white
-        ]
-    , rating =
-        [ position absolute
-        , displayFlex
-        , bottom zero
-        , margin2 (px 64) zero
-        , property "filter" "drop-shadow(-8px 5px 16px rgba(0,0,0,0.7))"
-        , transform <| translateX (px 50)
-        ]
-    , speechBubble =
-        [ width (px 200)
-        ]
-    , pewds =
-        [ width (px 60)
-        , marginLeft (px 20)
-        , property "animation-name" "twist"
-        , animatedLoop
-        , property "animation-duration" "8s"
         ]
     }
 
@@ -132,13 +91,6 @@ view model =
                 [ ellipse [ cx "150", cy "60", rx "120", ry "25" ] []
                 ]
             ]
-        , h1 [ css styles.title ] [ text model.name ]
-        , div [ css styles.rating ]
-            [ div [ css styles.speechBubble ]
-                [ fromUnstyled (icon .speechBubble [])
-                ]
-            , div [ css styles.pewds ]
-                [ fromUnstyled (icon .pewds [])
-                ]
-            ]
+        , h1 [ css styles.title ] [ text <| model.name ++ " meme" ]
+        , Rating.view model.rating
         ]
