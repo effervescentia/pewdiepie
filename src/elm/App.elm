@@ -1,7 +1,10 @@
 module App exposing (..)
 
-import Header
-import Html.Styled as Html exposing (Html, a, button, div, nav, text)
+import Css exposing (Style, backgroundColor, height, hidden, overflowY, pct, width)
+import Css.Colors exposing (black, blue)
+import Header exposing (Route)
+import Html.Styled as Html exposing (Html, a, button, div, main_, nav, text)
+import Html.Styled.Attributes exposing (css)
 import MemeReview
 import Navigation
 import RouteUrl
@@ -70,6 +73,27 @@ subscriptions model =
 
 
 
+-- STYLE
+
+
+type alias Styles =
+    { root : List Style
+    , main : List Style
+    }
+
+
+styles : Styles
+styles =
+    { root =
+        [ height (pct 100)
+        , overflowY hidden
+        ]
+    , main =
+        [ height (pct 100) ]
+    }
+
+
+
 -- VIEW
 
 
@@ -81,8 +105,9 @@ view model =
 
         header =
             Header.view
-                [ ( "meme-review", "Meme Review", MemeReview )
-                , ( "you-laugh-you-lose", "You Laugh. You Lose.", YouLaughYouLose )
+                [ Route MemeReview "meme-review" "Meme Review" [ backgroundColor black ]
+
+                -- , Route YouLaughYouLose "you-laugh-you-lose" "You Laugh. You Lose." [ backgroundColor blue ]
                 ]
                 model.routing.activeView
                 handleRoute
@@ -90,9 +115,9 @@ view model =
         activeView =
             Routing.view model.routing <| viewRoute model
     in
-        div []
+        div [ css styles.root ]
             [ header
-            , activeView
+            , main_ [ css styles.main ] [ activeView ]
             ]
 
 

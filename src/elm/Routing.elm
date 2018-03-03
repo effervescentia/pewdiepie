@@ -38,11 +38,7 @@ update action model =
 
 view : Model v -> (v -> Html a) -> Html a
 view model handleView =
-    let
-        activeView =
-            handleView model.activeView
-    in
-        div [] [ activeView ]
+    handleView model.activeView
 
 
 

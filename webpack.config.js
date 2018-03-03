@@ -13,7 +13,7 @@ module.exports = {
   },
 
   resolve: {
-    extensions: ['.js', '.elm', '.css'],
+    extensions: ['.js', '.elm'],
   },
 
   plugins: [
@@ -24,12 +24,12 @@ module.exports = {
   ],
 
   module: {
-    noParse: /\.elm$/,
     rules: [{
       test: /\.elm$/,
       exclude: [/elm-stuff/, /node_modules/],
       use: [
         'elm-hot-loader',
+        'elm-svg-loader',
         {
           loader: 'elm-webpack-loader',
           options: {
@@ -39,13 +39,15 @@ module.exports = {
           }
         }
       ]
-
     }, {
       test: /\.css$/,
       use: ExtractTextPlugin.extract({
         fallback: "style-loader",
         use: "css-loader"
       }),
+    },{
+      test: /\.svg$/,
+      loader: 'raw-loader'
     }],
   },
 

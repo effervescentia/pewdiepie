@@ -1,11 +1,22 @@
 module MemeReview exposing (..)
 
+import Css exposing (Style, absolute, alignItems, backgroundColor, center, column, displayFlex, flexDirection, height, justifyContent, pct, position, property, px, width)
+import Css.Colors exposing (black)
 import Dict
-import Html.Styled exposing (Html, div, text, button)
-import Html.Styled.Attributes exposing (type_)
+import Html.Styled exposing (Html, button, div, fromUnstyled, text)
+import Html.Styled.Attributes exposing (css, type_)
 import Html.Styled.Events exposing (onClick)
+import InlineSvg exposing (inline)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import String exposing (toInt)
+
+
+-- CONSTANTS
+
+
+{ icon } =
+    inline { spotlight = "../../assets/spotlight.svg" }
+
 
 
 -- MODEL
@@ -46,15 +57,53 @@ update action model =
 
 
 
+-- STYLE
+
+
+type alias Styles =
+    { root : List Style
+    , spotlight : List Style
+    , content : List Style
+    }
+
+
+styles : Styles
+styles =
+    { root =
+        [ displayFlex
+        , height (pct 100)
+        , flexDirection column
+        , justifyContent center
+        , alignItems center
+        , backgroundColor black
+        ]
+    , spotlight =
+        [ position absolute
+        , height (px 400)
+        , width (px 400)
+        , property "filter" "blur(200px)"
+        , property "pointer-events" "none"
+        ]
+    , content =
+        [ displayFlex
+        , justifyContent center
+        ]
+    }
+
+
+
 -- VIEW
 
 
 view : Model -> Html Action
 view model =
-    div []
-        [ button [ type_ "button", onClick Laugh ] [ text "Laugh" ]
-        , text "Meme Review"
-        , button [ type_ "button", onClick Lose ] [ text "Lost" ]
+    div [ css styles.root ]
+        [ div [ css styles.spotlight ] [ fromUnstyled (icon .spotlight []) ]
+        , div []
+            [ button [ type_ "button", onClick Laugh ] [ text "Laugh" ]
+            , text "Meme Review"
+            , button [ type_ "button", onClick Lose ] [ text "Lost" ]
+            ]
         ]
 
 
