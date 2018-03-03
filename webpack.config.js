@@ -29,6 +29,13 @@ module.exports = {
       exclude: [/elm-stuff/, /node_modules/],
       use: [
         'elm-hot-loader',
+        {
+          loader: 'elm-assets-loader',
+          options: {
+            module: 'Images',
+            tagger: 'Asset'
+          }
+        },
         'elm-svg-loader',
         {
           loader: 'elm-webpack-loader',
@@ -37,7 +44,7 @@ module.exports = {
             warn: true,
             debug: true
           }
-        }
+        },
       ]
     }, {
       test: /\.css$/,
@@ -45,9 +52,12 @@ module.exports = {
         fallback: "style-loader",
         use: "css-loader"
       }),
-    },{
+    }, {
       test: /\.svg$/,
       loader: 'raw-loader'
+    }, {
+      test: /\.(jpe?g|png|gif)$/i,
+      loader: 'file-loader',
     }],
   },
 

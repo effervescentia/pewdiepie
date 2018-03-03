@@ -11,12 +11,15 @@
     "start": "webpack-dev-server --open"
   },
   "devDependencies": {
+    "babel-core": "^6.26.0",
     "css-loader": "^0.28.10",
     "elm": "^0.18.0",
+    "elm-assets-loader": "^0.3.0",
     "elm-hot-loader": "^0.5.4",
     "elm-svg-loader": "^1.0.2",
     "elm-webpack-loader": "^4.4.0",
     "extract-text-webpack-plugin": "^3.0.2",
+    "file-loader": "^1.1.11",
     "html-webpack-plugin": "^2.30.1",
     "raw-loader": "^0.5.1",
     "style-loader": "^0.20.2",
