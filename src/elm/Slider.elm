@@ -1,6 +1,9 @@
 module Slider exposing (..)
 
+import Css exposing (Style, center, color, displayFlex, flexBasis, hidden, justifyContent, listStyle, margin, none, overflowX, padding, pct, property, transform, translateX, width, zero)
+import Css.Colors exposing (white)
 import Html.Styled exposing (Html, button, div, li, text, ul)
+import Html.Styled.Attributes exposing (css)
 import Html.Styled.Events exposing (onClick)
 
 
@@ -18,6 +21,43 @@ type alias Config msg =
 
 
 
+-- STYLE
+
+
+type alias Styles =
+    { root : List Style
+    , button : List Style
+    , list : List Style
+    , listItem : List Style
+    }
+
+
+styles : Styles
+styles =
+    { root =
+        [ overflowX hidden
+        , width (pct 100)
+        ]
+    , button =
+        [ color white
+        ]
+    , list =
+        [ displayFlex
+        , width (pct 200)
+        , margin zero
+        , padding zero
+        , listStyle none
+        , property "transition" "transform 1s ease"
+        ]
+    , listItem =
+        [ displayFlex
+        , flexBasis (pct 50)
+        , justifyContent center
+        ]
+    }
+
+
+
 -- VIEW
 
 
@@ -26,53 +66,46 @@ view { activateIndex } { activeIndex } options =
     let
         backButton =
             if activeIndex > 0 then
-                button [ onClick (activateIndex <| activeIndex - 1) ] []
+                button
+                    [ onClick (activateIndex <| activeIndex - 1)
+                    , css styles.button
+                    ]
+                    [ text "Back" ]
             else
                 text ""
 
         nextButton =
             if activeIndex < List.length (options) - 1 then
-                button [ onClick (activateIndex <| activeIndex + 1) ] []
+                button
+                    [ onClick (activateIndex <| activeIndex + 1)
+                    , css styles.button
+                    ]
+                    [ text "Next" ]
             else
                 text ""
+
+        offset =
+            -100
+                / (toFloat <|
+                    activeIndex
+                        * (List.length options)
+                  )
+
+        wrapItem =
+            viewItem activeIndex
     in
-        div []
-            [ ul [] <| List.map (\el -> li [] [ el ]) options
+        div [ css styles.root ]
+            [ ul
+                [ css styles.list
+                , css [ transform <| translateX (pct offset) ]
+                ]
+              <|
+                List.indexedMap wrapItem options
             , backButton
             , nextButton
             ]
 
 
-
--- conditionalButton : List (Route view) -> Int -> LinkVariant -> (view -> msg) -> Html msg
--- conditionalButton links activeIndex variant changeView =
---     case List.head links of
---         Just route ->
---             viewLink route changeView variant
---
---         Nothing ->
---             text ""
---
---
--- viewLink : Route routeView -> (routeView -> msg) -> LinkVariant -> Html msg
--- viewLink { url, label, view } changeView variant =
---     let
---         ( content, variantStyles ) =
---             case variant of
---                 None ->
---                     ( label, [] )
---
---                 Next ->
---                     ( ">", [ css styles.navLink, css styles.nextLink ] )
---
---                 Back ->
---                     ( "<", [ css styles.navLink, css styles.backLink ] )
---     in
---         a
---             ([ href <| "/" ++ url
---              , onWithOptions "click" clickOptions <| Decode.succeed <| changeView view
---              , css styles.link
---              ]
---                 ++ variantStyles
---             )
---             [ text content ]
+viewItem : Int -> Int -> Html msg -> Html msg
+viewItem activeIndex index innerEl =
+    li [ css styles.listItem ] [ innerEl ]

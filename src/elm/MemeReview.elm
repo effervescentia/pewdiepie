@@ -1,15 +1,16 @@
 module MemeReview exposing (..)
 
-import Css exposing (Style, absolute, alignItems, backgroundColor, center, column, displayFlex, flexDirection, height, int, justifyContent, num, pct, position, property, px, transform, translateX, width, zIndex)
+import Css exposing (Style, absolute, alignItems, backgroundColor, center, column, displayFlex, flexDirection, height, int, justifyContent, margin, num, padding, pct, position, property, px, transform, translateX, width, zIndex, zero)
 import Css.Colors exposing (black)
 import Dict
 import Html.Styled exposing (Html, button, div, fromUnstyled, text)
 import Html.Styled.Attributes exposing (css, type_)
-import Html.Styled.Events exposing (onClick)
 import Images
 import InlineSvg exposing (inline)
 import Meme
+import Memes
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
+import Slider
 import String exposing (toInt)
 
 
@@ -27,12 +28,13 @@ import String exposing (toInt)
 type alias Model =
     { laughed : Int
     , lost : Int
+    , activeIndex : Int
     }
 
 
 init : Model
 init =
-    Model 0 0
+    Model 0 0 0
 
 
 
@@ -43,6 +45,7 @@ type Action
     = Laugh
     | Lose
     | SetCounts Int Int
+    | ChangeMeme Int
 
 
 update : Action -> Model -> Model
@@ -56,6 +59,9 @@ update action model =
 
         SetCounts laughed lost ->
             { model | laughed = laughed, lost = lost }
+
+        ChangeMeme index ->
+            { model | activeIndex = index }
 
 
 
@@ -93,6 +99,7 @@ styles =
         ]
     , foreground =
         [ displayFlex
+        , width (pct 100)
         , flexDirection column
         , alignItems center
         , zIndex (int 100)
@@ -105,22 +112,16 @@ styles =
 
 
 view : Model -> Html Action
-view model =
+view { activeIndex } =
     div [ css styles.root ]
         [ div [ css styles.spotlight ] [ fromUnstyled (icon .spotlight []) ]
         , div [ css styles.foreground ]
-            [ Meme.view <|
-                Meme.Meme "bike cuck"
-                    ""
-                    Images.bikeCuck
-                    [ transform (translateX (px 30))
-                    , property "filter" "saturate(130%)"
-                    ]
-            , div []
-                [ button [ type_ "button", onClick Laugh ] [ text "Laugh" ]
-                , text "Meme Review"
-                , button [ type_ "button", onClick Lose ] [ text "Lost" ]
-                ]
+            [ Slider.view { activateIndex = ChangeMeme }
+                { activeIndex = activeIndex }
+              <|
+                List.map
+                    Meme.view
+                    Memes.memes
             ]
         ]
 
