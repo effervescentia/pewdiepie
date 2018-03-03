@@ -1,12 +1,24 @@
 module Meme exposing (..)
 
-import Css exposing (Style, absolute, alignItems, bottom, center, color, column, displayFlex, flexDirection, int, margin, margin2, marginBottom, num, padding, position, property, px, relative, textAlign, top, transform, translate, translate2, translateY, zIndex, zero)
+import Css exposing (Style, absolute, alignItems, bottom, center, color, column, displayFlex, flexDirection, int, justifyContent, margin, margin2, marginBottom, marginLeft, num, padding, position, property, px, relative, textAlign, top, transform, translate, translate2, translateX, translateY, width, zIndex, zero)
 import Css.Colors exposing (white)
-import Html.Styled exposing (Html, div, h1, img, text)
+import Html.Styled exposing (Html, div, fromUnstyled, h1, img, text)
 import Html.Styled.Attributes exposing (css, src)
 import Images exposing (Asset)
+import InlineSvg exposing (inline)
 import Svg.Styled exposing (ellipse, svg)
 import Svg.Styled.Attributes exposing (cx, cy, rx, ry)
+
+
+-- CONSTANTS
+
+
+{ icon } =
+    inline
+        { pewds = "../../assets/pewds.svg"
+        , speechBubble = "../../assets/speech_bubble2.svg"
+        }
+
 
 
 -- MODEL
@@ -30,6 +42,9 @@ type alias Styles =
     , image : List Style
     , shadow : List Style
     , title : List Style
+    , rating : List Style
+    , speechBubble : List Style
+    , pewds : List Style
     }
 
 
@@ -50,6 +65,7 @@ styles =
         , position relative
         , flexDirection column
         , alignItems center
+        , justifyContent center
         , textAlign center
         ]
     , imageContainer =
@@ -70,9 +86,27 @@ styles =
         ]
     , title =
         [ position absolute
+        , top zero
+        , margin2 (px 16) zero
+        , color white
+        ]
+    , rating =
+        [ position absolute
+        , displayFlex
         , bottom zero
         , margin2 (px 64) zero
-        , color white
+        , property "filter" "drop-shadow(-8px 5px 16px rgba(0,0,0,0.7))"
+        , transform <| translateX (px 50)
+        ]
+    , speechBubble =
+        [ width (px 200)
+        ]
+    , pewds =
+        [ width (px 60)
+        , marginLeft (px 20)
+        , property "animation-name" "twist"
+        , animatedLoop
+        , property "animation-duration" "8s"
         ]
     }
 
@@ -99,4 +133,12 @@ view model =
                 ]
             ]
         , h1 [ css styles.title ] [ text model.name ]
+        , div [ css styles.rating ]
+            [ div [ css styles.speechBubble ]
+                [ fromUnstyled (icon .speechBubble [])
+                ]
+            , div [ css styles.pewds ]
+                [ fromUnstyled (icon .pewds [])
+                ]
+            ]
         ]

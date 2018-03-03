@@ -31,7 +31,7 @@ type alias Model =
 
 init : ( Model, Cmd Action )
 init =
-    ( Model False MemeReview.init YouLaughYouLose.init <| Routing.init MemeReview
+    ( Model False MemeReview.init YouLaughYouLose.init (Routing.init MemeReview)
     , Cmd.none
     )
 
@@ -69,7 +69,14 @@ update msg model =
 
 subscriptions : Model -> Sub Action
 subscriptions model =
-    Sub.none
+    Sub.batch <|
+        case model.routing.activeView of
+            MemeReview ->
+                [ Sub.map MemeReviewAction <| MemeReview.subscriptions model.memeReview
+                ]
+
+            _ ->
+                []
 
 
 

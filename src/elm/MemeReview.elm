@@ -5,10 +5,10 @@ import Css.Colors exposing (black)
 import Dict
 import Html.Styled exposing (Html, button, div, fromUnstyled, text)
 import Html.Styled.Attributes exposing (css, type_)
-import Images
 import InlineSvg exposing (inline)
+import Keyboard exposing (KeyCode)
 import Meme
-import Memes
+import Memes exposing (memes)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import Slider
 import String exposing (toInt)
@@ -46,6 +46,7 @@ type Action
     | Lose
     | SetCounts Int Int
     | ChangeMeme Int
+    | HandleKeypress KeyCode
 
 
 update : Action -> Model -> Model
@@ -62,6 +63,28 @@ update action model =
 
         ChangeMeme index ->
             { model | activeIndex = index }
+
+        HandleKeypress code ->
+            case code of
+                -- left arrow
+                37 ->
+                    { model | activeIndex = max 0 (model.activeIndex - 1) }
+
+                -- right arrow
+                39 ->
+                    { model | activeIndex = min (List.length memes - 1) (model.activeIndex + 1) }
+
+                _ ->
+                    model
+
+
+
+-- SUBSCRIPTIONS
+
+
+subscriptions : Model -> Sub Action
+subscriptions model =
+    Sub.batch [ Keyboard.downs HandleKeypress ]
 
 
 
@@ -99,6 +122,7 @@ styles =
         ]
     , foreground =
         [ displayFlex
+        , height (pct 100)
         , width (pct 100)
         , flexDirection column
         , alignItems center

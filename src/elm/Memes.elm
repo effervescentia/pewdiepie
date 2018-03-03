@@ -19,4 +19,10 @@ memes =
         [ transform (translateX (px 30))
         , property "filter" "saturate(130%)"
         ]
+    , Meme "bike cuck 3 "
+        ""
+        Images.bikeCuck
+        [ transform (translateX (px 30))
+        , property "filter" "saturate(130%)"
+        ]
     ]

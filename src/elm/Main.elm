@@ -13,5 +13,5 @@ main =
         , init = App.init
         , view = App.view >> toUnstyled
         , update = App.update
-        , subscriptions = (\_ -> Sub.none)
+        , subscriptions = App.subscriptions
         }

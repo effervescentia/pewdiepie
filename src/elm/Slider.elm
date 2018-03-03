@@ -1,6 +1,6 @@
 module Slider exposing (..)
 
-import Css exposing (Style, center, color, displayFlex, flexBasis, hidden, justifyContent, listStyle, margin, none, overflowX, padding, pct, property, transform, translateX, width, zero)
+import Css exposing (Style, absolute, center, color, cursor, displayFlex, flexBasis, height, hidden, justifyContent, left, listStyle, margin, none, num, overflowX, padding, pct, pointer, position, property, relative, right, top, transform, translateX, translateY, width, zero)
 import Css.Colors exposing (white)
 import Html.Styled exposing (Html, button, div, li, text, ul)
 import Html.Styled.Attributes exposing (css)
@@ -35,15 +35,21 @@ type alias Styles =
 styles : Styles
 styles =
     { root =
-        [ overflowX hidden
+        [ position relative
+        , height (pct 100)
         , width (pct 100)
+        , overflowX hidden
         ]
     , button =
-        [ color white
+        [ position absolute
+        , top (pct 50)
+        , transform <| translateY (pct -50)
+        , color white
+        , cursor pointer
         ]
     , list =
         [ displayFlex
-        , width (pct 200)
+        , height (pct 100)
         , margin zero
         , padding zero
         , listStyle none
@@ -69,6 +75,7 @@ view { activateIndex } { activeIndex } options =
                 button
                     [ onClick (activateIndex <| activeIndex - 1)
                     , css styles.button
+                    , css [ left zero ]
                     ]
                     [ text "Back" ]
             else
@@ -79,17 +86,16 @@ view { activateIndex } { activeIndex } options =
                 button
                     [ onClick (activateIndex <| activeIndex + 1)
                     , css styles.button
+                    , css [ right zero ]
                     ]
                     [ text "Next" ]
             else
                 text ""
 
         offset =
-            -100
-                / (toFloat <|
-                    activeIndex
-                        * (List.length options)
-                  )
+            toFloat activeIndex
+                * -100
+                / (toFloat <| List.length options)
 
         wrapItem =
             viewItem activeIndex
@@ -97,7 +103,10 @@ view { activateIndex } { activeIndex } options =
         div [ css styles.root ]
             [ ul
                 [ css styles.list
-                , css [ transform <| translateX (pct offset) ]
+                , css
+                    [ width (pct <| toFloat <| 100 * List.length options)
+                    , transform <| translateX (pct offset)
+                    ]
                 ]
               <|
                 List.indexedMap wrapItem options
