@@ -12,7 +12,7 @@ import Svg.Styled.Attributes exposing (cx, cy, rx, ry)
 -- MODEL
 
 
-type alias Model =
+type alias Meme =
     { name : String
     , rating : String
     , image : Asset
@@ -28,7 +28,6 @@ type alias Styles =
     { root : List Style
     , imageContainer : List Style
     , image : List Style
-    , imageShadow : List Style
     , shadow : List Style
     , title : List Style
     }
@@ -61,17 +60,12 @@ styles =
     , image =
         [ position relative
         , transform (translateY (px 25))
-        ]
-    , imageShadow =
-        [ position absolute
-        , top zero
-        , transform (translate2 (px -20) (px 15))
-        , zIndex (int -1)
-        , property "filter" "contrast(0%) brightness(0%) blur(20px) opacity(.4)"
+        , property "filter" "drop-shadow(-20px 15px 32px rgba(0,0,0,0.7))"
         ]
     , shadow =
         [ property "filter" "blur(24px) opacity(.6)"
         , property "animation-name" "swell"
+        , zIndex (int -1)
         , animatedLoop
         ]
     , title =
@@ -87,7 +81,7 @@ styles =
 -- VIEW
 
 
-view : Model -> Html msg
+view : Meme -> Html msg
 view model =
     div [ css styles.root ]
         [ div [ css styles.imageContainer ]
@@ -97,13 +91,6 @@ view model =
                     , css model.styles
                     ]
                     []
-                , div [ css styles.imageShadow ]
-                    [ img
-                        [ src <| Images.use model.image
-                        , css model.styles
-                        ]
-                        []
-                    ]
                 ]
             ]
         , div [ css styles.shadow ]

@@ -110,7 +110,7 @@ view model =
         [ div [ css styles.spotlight ] [ fromUnstyled (icon .spotlight []) ]
         , div [ css styles.foreground ]
             [ Meme.view <|
-                Meme.Model "bike cuck"
+                Meme.Meme "bike cuck"
                     ""
                     Images.bikeCuck
                     [ transform (translateX (px 30))
