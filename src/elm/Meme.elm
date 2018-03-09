@@ -36,12 +36,16 @@ type alias Config msg =
 
 
 type alias Context =
-    { animationState : AnimationState }
+    { animationsEnabled : Bool
+    , animationState : AnimationState
+    }
 
 
 init : Context
 init =
-    { animationState = None }
+    { animationsEnabled = True
+    , animationState = None
+    }
 
 
 
@@ -50,7 +54,9 @@ init =
 
 update : AnimationState -> Context
 update animationState =
-    { animationState = animationState }
+    { animationState = animationState
+    , animationsEnabled = False
+    }
 
 
 
@@ -80,7 +86,8 @@ styles =
     , imageContainer =
         [ marginBottom (px 24)
         , property "animation-name" "bounce"
-        , animatedLoop 5
+
+        -- , animatedLoop 5
         ]
     , image =
         [ position relative
@@ -91,7 +98,8 @@ styles =
         [ property "filter" "blur(24px) opacity(.6)"
         , property "animation-name" "swell"
         , zIndex (int -1)
-        , animatedLoop 5
+
+        -- , animatedLoop 5
         ]
     , title =
         [ position absolute
@@ -110,10 +118,10 @@ styles =
 
 
 view : Config msg -> Context -> Meme -> Html msg
-view config context meme =
+view config { animationState, animationsEnabled } meme =
     let
         visibleStyle =
-            case context.animationState of
+            case animationState of
                 None ->
                     [ visibility hidden, transform <| scale 0 ]
 
@@ -122,7 +130,7 @@ view config context meme =
 
         nextAnimation =
             config.updateAnimation
-                (case context.animationState of
+                (case animationState of
                     ShowRating ->
                         if List.length meme.reviews > 0 then
                             ShowReview 0
@@ -140,8 +148,17 @@ view config context meme =
                 )
     in
         div [ css styles.root ]
-            [ div [ css styles.imageContainer ]
-                [ div [ css styles.image ]
+            [ div
+                [ css styles.imageContainer
+                , css
+                    (if animationsEnabled then
+                        [ animatedLoop 5 ]
+                     else
+                        []
+                    )
+                ]
+                [ div
+                    [ css styles.image ]
                     [ img
                         [ src <| Images.use meme.image
                         , css meme.styles
@@ -149,7 +166,15 @@ view config context meme =
                         []
                     ]
                 ]
-            , div [ css styles.shadow ]
+            , div
+                [ css styles.shadow
+                , css
+                    (if animationsEnabled then
+                        [ animatedLoop 5 ]
+                     else
+                        []
+                    )
+                ]
                 [ svg []
                     [ ellipse [ cx "150", cy "60", rx "120", ry "25" ] []
                     ]

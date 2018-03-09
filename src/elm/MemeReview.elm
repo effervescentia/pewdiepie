@@ -13,7 +13,6 @@ import Slider
 import Transit
 
 
--- import Transit
 -- CONSTANTS
 
 
@@ -54,6 +53,7 @@ init =
 
 type Msg
     = ChangeMeme Int
+    | UpdateSlide Int
     | HandleKeypress KeyCode
     | UpdateAnimation AnimationState
     | TransitMsg (Transit.Msg Msg)
@@ -65,15 +65,20 @@ update action ({ sliderState } as model) =
     let
         changeSlide index =
             if index /= sliderState.activeIndex then
-                { model
-                    | sliderState =
-                        { sliderState
-                            | activeIndex = Debug.log "next page" index
-                        }
-                    , memeState = Meme.init
-                    , animationState = Sliding
-                }
-                    ! []
+                let
+                    ( updatedState, cmd ) =
+                        Transit.start TransitMsg
+                            (UpdateSlide <| Debug.log "next page" index)
+                            ( 1000, 0 )
+                            sliderState
+                in
+                    ( { model
+                        | sliderState = updatedState
+                        , memeState = Meme.init
+                        , animationState = Sliding
+                      }
+                    , cmd
+                    )
             else
                 model ! []
     in
@@ -101,6 +106,9 @@ update action ({ sliderState } as model) =
 
                     _ ->
                         model ! []
+
+            UpdateSlide index ->
+                { model | sliderState = { sliderState | activeIndex = index } } ! []
 
             UpdateAnimation animation ->
                 case animation of
@@ -144,7 +152,10 @@ update action ({ sliderState } as model) =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch [ Keyboard.ups HandleKeypress ]
+    Sub.batch
+        [ Keyboard.ups HandleKeypress
+        , Transit.subscriptions TransitMsg model.sliderState
+        ]
 
 
 
@@ -214,11 +225,13 @@ view { sliderState, animationState, memeState } =
               <|
                 List.map
                     (Meme.view
-                        { updateAnimation = \animation -> UpdateAnimation <| AnimatingMeme animation }
-                        memeState
+                        { updateAnimation = \animation -> UpdateAnimation <| AnimatingMeme animation
+                        }
+                        { memeState | animationsEnabled = Transit.getStep sliderState.transition == Transit.Done }
                     )
                     Memes.memes
             ]
+        , text <| toString <| Transit.getValue sliderState.transition
         ]
 
 

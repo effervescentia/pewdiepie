@@ -61,7 +61,8 @@ styles =
         , margin zero
         , padding zero
         , listStyle none
-        , property "transition" "transform 1s ease"
+
+        -- , property "transition" "transform 1s ease"
         ]
     , listItem =
         [ displayFlex
@@ -90,10 +91,13 @@ view { activateIndex } { activeIndex, transition } options =
             else
                 text ""
 
+        offsetStep =
+            -100
+                / (toFloat <| List.length options)
+
         offset =
             toFloat activeIndex
-                * -100
-                / (toFloat <| List.length options)
+                * offsetStep
 
         wrapItem =
             viewItem activeIndex
@@ -107,13 +111,21 @@ view { activateIndex } { activeIndex, transition } options =
                 [ css styles.list
                 , css
                     [ width (pct <| toFloat <| 100 * List.length options)
-                    , transform <| translateX (pct offset)
+                    , transform <|
+                        translateX
+                            (pct <|
+                                (toFloat activeIndex
+                                    + Transit.getValue transition
+                                )
+                                    * offsetStep
+                            )
                     ]
                 ]
               <|
                 List.indexedMap wrapItem options
             , backButton
             , nextButton
+            , text <| toString offsetStep
             ]
 
 
