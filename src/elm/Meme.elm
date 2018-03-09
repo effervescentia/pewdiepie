@@ -2,6 +2,7 @@ module Meme exposing (..)
 
 import Css exposing (Style, absolute, alignItems, bottom, center, color, column, displayFlex, flexDirection, hidden, inherit, initial, int, justifyContent, margin, margin2, marginBottom, marginLeft, num, padding, position, property, px, relative, scale, textAlign, top, transform, translate, translate2, translateX, translateY, visibility, width, zIndex, zero)
 import Css.Colors exposing (white)
+import Delay
 import Html.Styled exposing (Html, div, fromUnstyled, h1, img, text)
 import Html.Styled.Attributes exposing (css, src)
 import Images exposing (Asset)
@@ -9,6 +10,7 @@ import Rating
 import Styles exposing (animatedLoop)
 import Svg.Styled exposing (ellipse, svg)
 import Svg.Styled.Attributes exposing (cx, cy, rx, ry)
+import Time exposing (millisecond)
 
 
 -- MODEL
@@ -18,7 +20,7 @@ type AnimationState
     = None
     | ShowRating
     | ShowReview Int
-    | Finished
+    | Done
 
 
 type alias Meme =
@@ -48,15 +50,47 @@ init =
     }
 
 
+initFinal : Context
+initFinal =
+    { animationsEnabled = True
+    , animationState = Done
+    }
+
+
 
 -- UPDATE
 
 
-update : AnimationState -> Context
-update animationState =
-    { animationState = animationState
-    , animationsEnabled = False
-    }
+type Msg
+    = AnimateStep AnimationState
+    | CompleteAnimation AnimationState
+
+
+update : Msg -> Context -> Meme -> ( Context, Cmd Msg )
+update msg context meme =
+    case msg of
+        AnimateStep animation ->
+            case animation of
+                ShowRating ->
+                    context ! [ Delay.after 1000 millisecond (CompleteAnimation animation) ]
+
+                _ ->
+                    context ! []
+
+        CompleteAnimation animation ->
+            let
+                nextCmd =
+                    case animation of
+                        ShowRating ->
+                            if List.length meme.reviews > 0 then
+                                Delay.after 1000 millisecond (AnimateStep <| ShowReview 0)
+                            else
+                                Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+                ( { context | animationState = animation }, nextCmd )
 
 
 
@@ -132,16 +166,16 @@ view config { animationState, animationsEnabled } meme =
                         if List.length meme.reviews > 0 then
                             ShowReview 0
                         else
-                            Finished
+                            Done
 
                     ShowReview index ->
                         if index < (List.length meme.reviews - 1) then
                             ShowReview <| index + 1
                         else
-                            Finished
+                            Done
 
                     _ ->
-                        Finished
+                        Done
                 )
     in
         div [ css styles.root ]

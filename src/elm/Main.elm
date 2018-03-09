@@ -1,11 +1,11 @@
 module Main exposing (main)
 
-import App exposing (Action, Model)
+import App exposing (Msg, Model)
 import Html.Styled exposing (toUnstyled)
 import RouteUrl exposing (RouteUrlProgram)
 
 
-main : RouteUrlProgram Never Model Action
+main : RouteUrlProgram Never Model Msg
 main =
     RouteUrl.program
         { delta2url = App.delta2url

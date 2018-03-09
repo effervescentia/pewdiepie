@@ -7,7 +7,8 @@ import Html.Styled exposing (Html, button, div, fromUnstyled, text)
 import Html.Styled.Attributes exposing (css, type_)
 import InlineSvg exposing (inline)
 import Keyboard exposing (KeyCode)
-import Meme exposing (AnimationState, AnimationState(ShowRating, Finished))
+import List.Extra
+import Meme
 import Memes exposing (memes)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import Slider
@@ -32,7 +33,7 @@ route =
 
 type AnimationState
     = Sliding
-    | AnimatingMeme Meme.AnimationState
+    | AnimatingMeme Meme.Msg
     | Done
 
 
@@ -45,7 +46,7 @@ type alias Model =
 
 init : Model
 init =
-    Model Slider.init Done Meme.init
+    Model Slider.init Done Meme.initFinal
 
 
 
@@ -57,11 +58,12 @@ type Msg
     | UpdateSlide Int
     | HandleKeypress KeyCode
     | UpdateAnimation AnimationState
+    | MemeMsg Meme.Msg
     | None
 
 
 update : Msg -> Model -> ( Model, Cmd Msg )
-update action ({ sliderState } as model) =
+update action ({ sliderState, memeState } as model) =
     let
         changeSlide index =
             if index /= sliderState.activeIndex then
@@ -70,7 +72,7 @@ update action ({ sliderState } as model) =
                     , memeState = Meme.init
                     , animationState = Sliding
                 }
-                    ! [ Delay.after 1000 millisecond None ]
+                    ! [ Delay.after 1000 millisecond <| UpdateAnimation <| AnimatingMeme <| Meme.AnimateStep Meme.ShowRating ]
             else
                 model ! []
     in
@@ -104,28 +106,23 @@ update action ({ sliderState } as model) =
 
             UpdateAnimation animation ->
                 case animation of
-                    AnimatingMeme memeAnimation ->
-                        let
-                            memeState =
-                                Meme.update memeAnimation
-                        in
-                            case memeState.animationState of
-                                Finished ->
-                                    { model
-                                        | animationState = Done
-                                        , memeState = memeState
-                                    }
-                                        ! []
+                    AnimatingMeme memeMsg ->
+                        case List.Extra.getAt sliderState.activeIndex memes of
+                            Just activeMeme ->
+                                let
+                                    ( updatedState, cmd ) =
+                                        Meme.update memeMsg memeState activeMeme
+                                in
+                                    ( { model | memeState = updatedState }, Cmd.map MemeMsg cmd )
 
-                                _ ->
-                                    { model
-                                        | animationState = animation
-                                        , memeState = memeState
-                                    }
-                                        ! []
+                            Nothing ->
+                                model ! []
 
                     _ ->
                         { model | animationState = animation } ! []
+
+            MemeMsg memeMsg ->
+                model ! []
 
             None ->
                 model ! []
@@ -195,19 +192,12 @@ view { sliderState, animationState, memeState } =
         , div [ css styles.foreground ]
             [ Slider.view
                 { activateIndex = ChangeMeme
-
-                -- , completeTransition =
-                --     (if animationState == Sliding then
-                --         UpdateAnimation <| AnimatingMeme ShowRating
-                --      else
-                --         None
-                --     )
                 }
                 sliderState
               <|
                 List.map
                     (Meme.view
-                        { updateAnimation = \animation -> UpdateAnimation <| AnimatingMeme animation
+                        { updateAnimation = (\animation -> None)
                         }
                         memeState
                     )
