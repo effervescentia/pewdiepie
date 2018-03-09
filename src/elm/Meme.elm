@@ -86,8 +86,7 @@ styles =
     , imageContainer =
         [ marginBottom (px 24)
         , property "animation-name" "bounce"
-
-        -- , animatedLoop 5
+        , animatedLoop 5
         ]
     , image =
         [ position relative
@@ -95,11 +94,9 @@ styles =
         , property "filter" "drop-shadow(-20px 15px 32px rgba(0,0,0,0.7))"
         ]
     , shadow =
-        [ property "filter" "blur(24px) opacity(.6)"
-        , property "animation-name" "swell"
+        [ property "animation-name" "swell"
         , zIndex (int -1)
-
-        -- , animatedLoop 5
+        , animatedLoop 5
         ]
     , title =
         [ position absolute
@@ -149,14 +146,7 @@ view config { animationState, animationsEnabled } meme =
     in
         div [ css styles.root ]
             [ div
-                [ css styles.imageContainer
-                , css
-                    (if animationsEnabled then
-                        [ animatedLoop 5 ]
-                     else
-                        []
-                    )
-                ]
+                [ css styles.imageContainer ]
                 [ div
                     [ css styles.image ]
                     [ img
@@ -167,14 +157,7 @@ view config { animationState, animationsEnabled } meme =
                     ]
                 ]
             , div
-                [ css styles.shadow
-                , css
-                    (if animationsEnabled then
-                        [ animatedLoop 5 ]
-                     else
-                        []
-                    )
-                ]
+                [ css styles.shadow ]
                 [ svg []
                     [ ellipse [ cx "150", cy "60", rx "120", ry "25" ] []
                     ]

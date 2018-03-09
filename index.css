@@ -18,10 +18,12 @@ body {
 
 @keyframes swell {
   0%, 100% {
-    transform: scale(1);
+    transform: scale(.9);
+    filter: blur(18px) opacity(.7);
   }
   50% {
     transform: scale(1.2);
+    filter: blur(24px) opacity(.6);
   }
 }
 

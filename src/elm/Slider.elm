@@ -4,18 +4,15 @@ import Css exposing (Style, absolute, center, color, cursor, displayFlex, flexBa
 import Css.Colors exposing (white)
 import Html.Styled exposing (Html, button, div, li, text, ul)
 import Html.Styled.Attributes exposing (css)
-import Html.Styled.Events exposing (on, onClick)
-import Transit
+import Html.Styled.Events exposing (onClick)
 
 
--- import Json.Decode as Decode
 -- MODEL
 
 
 type alias Context =
-    Transit.WithTransition
-        { activeIndex : Int
-        }
+    { activeIndex : Int
+    }
 
 
 type alias Config msg =
@@ -25,7 +22,7 @@ type alias Config msg =
 
 init : Context
 init =
-    { activeIndex = 0, transition = Transit.empty }
+    { activeIndex = 0 }
 
 
 
@@ -61,8 +58,7 @@ styles =
         , margin zero
         , padding zero
         , listStyle none
-
-        -- , property "transition" "transform 1s ease"
+        , property "transition" "transform 1s ease"
         ]
     , listItem =
         [ displayFlex
@@ -77,7 +73,7 @@ styles =
 
 
 view : Config msg -> Context -> List (Html msg) -> Html msg
-view { activateIndex } { activeIndex, transition } options =
+view { activateIndex } { activeIndex } options =
     let
         backButton =
             if activeIndex > 0 then
@@ -91,41 +87,26 @@ view { activateIndex } { activeIndex, transition } options =
             else
                 text ""
 
-        offsetStep =
-            -100
-                / (toFloat <| List.length options)
-
         offset =
             toFloat activeIndex
-                * offsetStep
+                * -100
+                / (toFloat <| List.length options)
 
         wrapItem =
             viewItem activeIndex
-
-        -- endAnimation =
-        --     Decode.map (mapAnimationType completeTransition) (Decode.field "propertyName" Decode.string)
     in
         div [ css styles.root ]
             [ ul
-                -- [ on "transitionend" endAnimation
                 [ css styles.list
                 , css
                     [ width (pct <| toFloat <| 100 * List.length options)
-                    , transform <|
-                        translateX
-                            (pct <|
-                                (toFloat activeIndex
-                                    + Transit.getValue transition
-                                )
-                                    * offsetStep
-                            )
+                    , transform <| translateX (pct offset)
                     ]
                 ]
               <|
                 List.indexedMap wrapItem options
             , backButton
             , nextButton
-            , text <| toString offsetStep
             ]
 
 

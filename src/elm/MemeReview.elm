@@ -2,6 +2,7 @@ module MemeReview exposing (..)
 
 import Css exposing (Style, absolute, alignItems, backgroundColor, center, column, displayFlex, flexDirection, height, int, justifyContent, margin, num, padding, pct, position, property, px, transform, translateX, width, zIndex, zero)
 import Css.Colors exposing (black)
+import Delay
 import Html.Styled exposing (Html, button, div, fromUnstyled, text)
 import Html.Styled.Attributes exposing (css, type_)
 import InlineSvg exposing (inline)
@@ -10,7 +11,7 @@ import Meme exposing (AnimationState, AnimationState(ShowRating, Finished))
 import Memes exposing (memes)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import Slider
-import Transit
+import Time exposing (millisecond)
 
 
 -- CONSTANTS
@@ -56,7 +57,6 @@ type Msg
     | UpdateSlide Int
     | HandleKeypress KeyCode
     | UpdateAnimation AnimationState
-    | TransitMsg (Transit.Msg Msg)
     | None
 
 
@@ -65,20 +65,12 @@ update action ({ sliderState } as model) =
     let
         changeSlide index =
             if index /= sliderState.activeIndex then
-                let
-                    ( updatedState, cmd ) =
-                        Transit.start TransitMsg
-                            (UpdateSlide <| Debug.log "next page" index)
-                            ( 1000, 0 )
-                            sliderState
-                in
-                    ( { model
-                        | sliderState = updatedState
-                        , memeState = Meme.init
-                        , animationState = Sliding
-                      }
-                    , cmd
-                    )
+                { model
+                    | sliderState = { sliderState | activeIndex = index }
+                    , memeState = Meme.init
+                    , animationState = Sliding
+                }
+                    ! [ Delay.after 1000 millisecond None ]
             else
                 model ! []
     in
@@ -135,13 +127,6 @@ update action ({ sliderState } as model) =
                     _ ->
                         { model | animationState = animation } ! []
 
-            TransitMsg transitMsg ->
-                let
-                    ( updatedState, cmd ) =
-                        Transit.tick TransitMsg transitMsg sliderState
-                in
-                    ( { model | sliderState = updatedState }, cmd )
-
             None ->
                 model ! []
 
@@ -152,10 +137,7 @@ update action ({ sliderState } as model) =
 
 subscriptions : Model -> Sub Msg
 subscriptions model =
-    Sub.batch
-        [ Keyboard.ups HandleKeypress
-        , Transit.subscriptions TransitMsg model.sliderState
-        ]
+    Sub.batch [ Keyboard.ups HandleKeypress ]
 
 
 
@@ -227,11 +209,10 @@ view { sliderState, animationState, memeState } =
                     (Meme.view
                         { updateAnimation = \animation -> UpdateAnimation <| AnimatingMeme animation
                         }
-                        { memeState | animationsEnabled = Transit.getStep sliderState.transition == Transit.Done }
+                        memeState
                     )
                     Memes.memes
             ]
-        , text <| toString <| Transit.getValue sliderState.transition
         ]
 
 
