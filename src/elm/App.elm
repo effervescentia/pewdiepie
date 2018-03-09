@@ -43,7 +43,7 @@ init =
 type Action
     = EnterSite
     | RoutingAction (Routing.Action View)
-    | MemeReviewAction MemeReview.Action
+    | MemeReviewAction MemeReview.Msg
     | YouLaughYouLoseAction YouLaughYouLose.Action
 
 
