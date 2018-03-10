@@ -264,7 +264,9 @@ viewConditionalReview step index review =
                     List.Extra.getAt index reviewStyles
 
         hiddenStyles =
-            [ visibility hidden, transform <| scale 0 ]
+            [ visibility hidden
+            , transform <| scale 0
+            ]
 
         visibleStyles =
             [ transform <| scale 1 ]
@@ -302,8 +304,6 @@ viewReview review containerStyles innerStyles =
             ]
             [ div [ css styles.reviewInner ]
                 [ fromUnstyled (icon .spikeBubble [ Svg.Attributes.color "#ffe404" ])
-
-                -- , div [ css styles.reviewText ] [ text review ]
                 , div [ css styles.reviewText ]
                     [ Svg.Styled.svg []
                         [ text_
