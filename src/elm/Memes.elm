@@ -10,7 +10,7 @@ memes =
     [ Meme "bike cuck"
         "8 / 10"
         Images.bikeCuck
-        []
+        [ "one", "two", "three" ]
         [ transform (translateX (px 20))
         , property "filter" "saturate(130%)"
         ]

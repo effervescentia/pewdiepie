@@ -35,3 +35,12 @@ body {
     transform: rotate(10deg);
   }
 }
+
+@keyframes twist-small {
+  0%, 100% {
+    transform: rotate(-2deg);
+  }
+  50% {
+    transform: rotate(2deg);
+  }
+}

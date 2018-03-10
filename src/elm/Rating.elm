@@ -13,7 +13,7 @@ import Styles exposing (animatedLoop)
 { icon } =
     inline
         { pewds = "../../assets/pewds.svg"
-        , speechBubble = "../../assets/speech_bubble2.svg"
+        , speechBubble = "../../assets/speech_bubble.svg"
         }
 
 
