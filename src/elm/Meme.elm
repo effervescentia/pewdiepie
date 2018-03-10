@@ -61,12 +61,6 @@ init time =
         ! [ Delay.after time millisecond (AnimateStep ShowRating) ]
 
 
-initFinal : Context
-initFinal =
-    { animationStep = Done
-    }
-
-
 
 -- UPDATE
 

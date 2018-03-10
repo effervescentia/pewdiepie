@@ -1,6 +1,6 @@
 module Memes exposing (..)
 
-import Css exposing (property, px, transform, translateX)
+import Css exposing (property, px, transform, translateX, width)
 import Images
 import Meme exposing (Meme)
 
@@ -10,23 +10,22 @@ memes =
     [ Meme "bike cuck"
         "8 / 10"
         Images.bikeCuck
-        [ "one", "two", "three" ]
+        []
         [ transform (translateX (px 20))
         , property "filter" "saturate(130%)"
         ]
     , Meme "loss"
         "10 / 10"
-        Images.bikeCuck
-        []
-        [ transform (translateX (px 20))
-        , property "filter" "saturate(130%)"
+        Images.loss
+        [ "universal", "adaptable", "\"a beautiful meme\"" ]
+        [ width (px 300)
         ]
     , Meme "petting dog"
         "5.5 / 10"
-        Images.bikeCuck
+        Images.pettingDog
         []
-        [ transform (translateX (px 20))
-        , property "filter" "saturate(130%)"
+        [ transform (translateX (px -40))
+        , width (px 500)
         ]
     , Meme "monkey haircut"
         "5.2 / 10"

@@ -31,9 +31,13 @@ type alias Model =
 
 init : ( Model, Cmd Msg )
 init =
-    ( Model False MemeReview.init YouLaughYouLose.init (Routing.init MemeReview)
-    , Cmd.none
-    )
+    let
+        ( memeReviewState, memeReviewCmd ) =
+            MemeReview.init
+    in
+        ( Model False memeReviewState YouLaughYouLose.init (Routing.init MemeReview)
+        , Cmd.map MemeReviewMsg memeReviewCmd
+        )
 
 
 

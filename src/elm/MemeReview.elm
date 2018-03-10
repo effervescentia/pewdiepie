@@ -44,9 +44,14 @@ type alias Model =
     }
 
 
-init : Model
+init : ( Model, Cmd Msg )
 init =
-    Model Slider.init Done Meme.initFinal
+    let
+        ( memeState, memeCmd ) =
+            Meme.init 1000
+    in
+        Model Slider.init Done memeState
+            ! [ Cmd.map MemeMsg memeCmd ]
 
 
 
