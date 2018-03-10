@@ -31,15 +31,15 @@ route =
 -- MODEL
 
 
-type AnimationState
+type AnimationStep
     = Sliding
-    | AnimatingMeme Meme.Msg
+    | AnimatingMeme
     | Done
 
 
 type alias Model =
     { sliderState : Slider.Context
-    , animationState : AnimationState
+    , animationStep : AnimationStep
     , memeState : Meme.Context
     }
 
@@ -57,7 +57,7 @@ type Msg
     = ChangeMeme Int
     | UpdateSlide Int
     | HandleKeypress KeyCode
-    | UpdateAnimation AnimationState
+    | UpdateAnimation AnimationStep
     | MemeMsg Meme.Msg
     | None
 
@@ -67,12 +67,18 @@ update action ({ sliderState, memeState } as model) =
     let
         changeSlide index =
             if index /= sliderState.activeIndex then
-                { model
-                    | sliderState = { sliderState | activeIndex = index }
-                    , memeState = Meme.init
-                    , animationState = Sliding
-                }
-                    ! [ Delay.after 1000 millisecond <| UpdateAnimation <| AnimatingMeme <| Meme.AnimateStep Meme.ShowRating ]
+                let
+                    ( updatedMemeState, memeCmd ) =
+                        Meme.init 1000
+                in
+                    { model
+                        | sliderState = { sliderState | activeIndex = index }
+                        , memeState = updatedMemeState
+                        , animationStep = Sliding
+                    }
+                        ! [ Delay.after 1000 millisecond <| UpdateAnimation <| AnimatingMeme
+                          , Cmd.map MemeMsg memeCmd
+                          ]
             else
                 model ! []
     in
@@ -104,25 +110,20 @@ update action ({ sliderState, memeState } as model) =
             UpdateSlide index ->
                 { model | sliderState = { sliderState | activeIndex = index } } ! []
 
-            UpdateAnimation animation ->
-                case animation of
-                    AnimatingMeme memeMsg ->
-                        case List.Extra.getAt sliderState.activeIndex memes of
-                            Just activeMeme ->
-                                let
-                                    ( updatedState, cmd ) =
-                                        Meme.update memeMsg memeState activeMeme
-                                in
-                                    ( { model | memeState = updatedState }, Cmd.map MemeMsg cmd )
-
-                            Nothing ->
-                                model ! []
-
-                    _ ->
-                        { model | animationState = animation } ! []
+            UpdateAnimation step ->
+                { model | animationStep = step } ! []
 
             MemeMsg memeMsg ->
-                model ! []
+                let
+                    ( updatedMemeState, memeCmd ) =
+                        case List.Extra.getAt sliderState.activeIndex memes of
+                            Just meme ->
+                                Meme.update memeMsg memeState meme
+
+                            Nothing ->
+                                memeState ! []
+                in
+                    { model | memeState = updatedMemeState } ! [ Cmd.map MemeMsg memeCmd ]
 
             None ->
                 model ! []
@@ -186,7 +187,7 @@ styles =
 
 
 view : Model -> Html Msg
-view { sliderState, animationState, memeState } =
+view { animationStep, sliderState, memeState } =
     div [ css styles.root ]
         [ div [ css styles.spotlight ] [ fromUnstyled (icon .spotlight []) ]
         , div [ css styles.foreground ]
@@ -197,7 +198,8 @@ view { sliderState, animationState, memeState } =
               <|
                 List.map
                     (Meme.view
-                        { updateAnimation = (\animation -> None)
+                        { updateAnimation = MemeMsg
+                        , animationsEnabled = animationStep == AnimatingMeme
                         }
                         memeState
                     )

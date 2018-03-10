@@ -33,27 +33,26 @@ type alias Meme =
 
 
 type alias Config msg =
-    { updateAnimation : AnimationState -> msg
+    { updateAnimation : Msg -> msg
+    , animationsEnabled : Bool
     }
 
 
 type alias Context =
-    { animationsEnabled : Bool
-    , animationState : AnimationState
+    { animationState : AnimationState
     }
 
 
-init : Context
-init =
-    { animationsEnabled = True
-    , animationState = None
+init : Float -> ( Context, Cmd Msg )
+init time =
+    { animationState = None
     }
+        ! [ Delay.after time millisecond (AnimateStep ShowRating) ]
 
 
 initFinal : Context
 initFinal =
-    { animationsEnabled = True
-    , animationState = Done
+    { animationState = Done
     }
 
 
@@ -149,7 +148,7 @@ styles =
 
 
 view : Config msg -> Context -> Meme -> Html msg
-view config { animationState, animationsEnabled } meme =
+view { updateAnimation } { animationState } meme =
     let
         visibleStyle =
             case animationState of
@@ -160,23 +159,24 @@ view config { animationState, animationsEnabled } meme =
                     [ transform <| scale 1 ]
 
         nextAnimation =
-            config.updateAnimation
-                (case animationState of
-                    ShowRating ->
-                        if List.length meme.reviews > 0 then
-                            ShowReview 0
-                        else
-                            Done
+            updateAnimation <|
+                AnimateStep
+                    (case animationState of
+                        ShowRating ->
+                            if List.length meme.reviews > 0 then
+                                ShowReview 0
+                            else
+                                Done
 
-                    ShowReview index ->
-                        if index < (List.length meme.reviews - 1) then
-                            ShowReview <| index + 1
-                        else
-                            Done
+                        ShowReview index ->
+                            if index < (List.length meme.reviews - 1) then
+                                ShowReview <| index + 1
+                            else
+                                Done
 
-                    _ ->
-                        Done
-                )
+                        _ ->
+                            Done
+                    )
     in
         div [ css styles.root ]
             [ div
