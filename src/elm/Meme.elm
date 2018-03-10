@@ -1,6 +1,6 @@
 module Meme exposing (..)
 
-import Css exposing (Style, absolute, alignItems, bottom, center, color, column, deg, displayFlex, flexDirection, height, hidden, inherit, initial, int, justifyContent, left, margin, margin2, marginBottom, marginLeft, num, padding, pct, position, property, px, relative, right, rotate, scale, textAlign, top, transform, translate, translate2, translateX, translateY, visibility, width, zIndex, zero)
+import Css exposing (Style, absolute, alignItems, bolder, bottom, center, color, column, deg, displayFlex, flexDirection, fontSize, fontWeight, height, hidden, inherit, initial, int, justifyContent, left, margin, margin2, marginBottom, marginLeft, num, padding, pct, position, property, px, relative, rem, right, rotate, scale, textAlign, top, transform, translate, translate2, translateX, translateY, visibility, width, zIndex, zero)
 import Css.Colors exposing (white)
 import Delay
 import Html.Styled exposing (Html, div, fromUnstyled, h1, img, text)
@@ -9,10 +9,11 @@ import Images exposing (Asset)
 import InlineSvg exposing (inline)
 import List.Extra
 import Rating
+import String exposing (toUpper)
 import Styles exposing (animatedLoop)
 import Svg.Attributes
-import Svg.Styled exposing (ellipse, svg)
-import Svg.Styled.Attributes exposing (cx, cy, rx, ry)
+import Svg.Styled exposing (ellipse, svg, text_)
+import Svg.Styled.Attributes exposing (alignmentBaseline, cx, cy, rx, ry, stroke, strokeWidth, textAnchor, x, y)
 import Time exposing (millisecond)
 
 
@@ -178,6 +179,9 @@ styles =
         , left (pct 50)
         , top (pct 50)
         , transform <| translate2 (pct -50) (pct -50)
+        , color white
+        , fontSize (Css.rem 2.4)
+        , fontWeight bolder
         ]
     }
 
@@ -298,7 +302,21 @@ viewReview review containerStyles innerStyles =
             ]
             [ div [ css styles.reviewInner ]
                 [ fromUnstyled (icon .spikeBubble [ Svg.Attributes.color "#ffe404" ])
-                , div [ css styles.reviewText ] [ text review ]
+
+                -- , div [ css styles.reviewText ] [ text review ]
+                , div [ css styles.reviewText ]
+                    [ Svg.Styled.svg []
+                        [ text_
+                            [ textAnchor "middle"
+                            , alignmentBaseline "central"
+                            , x "50%"
+                            , y "50%"
+                            , stroke "black"
+                            , strokeWidth "2px"
+                            ]
+                            [ Svg.Styled.text <| toUpper review ]
+                        ]
+                    ]
                 ]
             ]
         ]
