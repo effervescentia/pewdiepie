@@ -21,11 +21,11 @@ init =
 -- UPDATE
 
 
-type Action v
+type Msg v
     = ChangeView v
 
 
-update : Action v -> Model v -> Model v
+update : Msg v -> Model v -> Model v
 update action model =
     case action of
         ChangeView view ->

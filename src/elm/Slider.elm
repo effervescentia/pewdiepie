@@ -4,8 +4,7 @@ import Css exposing (Style, absolute, center, color, cursor, displayFlex, flexBa
 import Css.Colors exposing (white)
 import Html.Styled exposing (Html, button, div, li, text, ul)
 import Html.Styled.Attributes exposing (css)
-import Html.Styled.Events exposing (on, onClick)
-import Json.Decode as Decode
+import Html.Styled.Events exposing (onClick)
 
 
 -- MODEL
@@ -18,8 +17,12 @@ type alias Context =
 
 type alias Config msg =
     { activateIndex : Int -> msg
-    , completeTransition : msg
     }
+
+
+init : Context
+init =
+    { activeIndex = 0 }
 
 
 
@@ -70,27 +73,17 @@ styles =
 
 
 view : Config msg -> Context -> List (Html msg) -> Html msg
-view { activateIndex, completeTransition } { activeIndex } options =
+view { activateIndex } { activeIndex } options =
     let
         backButton =
             if activeIndex > 0 then
-                button
-                    [ onClick (activateIndex <| activeIndex - 1)
-                    , css styles.button
-                    , css [ left zero ]
-                    ]
-                    [ text "Back" ]
+                viewControl "Back" (activateIndex <| activeIndex - 1) [ left zero ]
             else
                 text ""
 
         nextButton =
             if activeIndex < List.length (options) - 1 then
-                button
-                    [ onClick (activateIndex <| activeIndex + 1)
-                    , css styles.button
-                    , css [ right zero ]
-                    ]
-                    [ text "Next" ]
+                viewControl "Next" (activateIndex <| activeIndex + 1) [ right zero ]
             else
                 text ""
 
@@ -101,17 +94,10 @@ view { activateIndex, completeTransition } { activeIndex } options =
 
         wrapItem =
             viewItem activeIndex
-
-        endAnimation =
-            Decode.map (mapAnimationType completeTransition) (Decode.field "propertyName" Decode.string)
-
-        -- endAnimation =
-        --     Decode.succeed completeTransition
     in
         div [ css styles.root ]
             [ ul
-                [ on "transitionend" endAnimation
-                , css styles.list
+                [ css styles.list
                 , css
                     [ width (pct <| toFloat <| 100 * List.length options)
                     , transform <| translateX (pct offset)
@@ -122,6 +108,16 @@ view { activateIndex, completeTransition } { activeIndex } options =
             , backButton
             , nextButton
             ]
+
+
+viewControl : String -> msg -> List Style -> Html msg
+viewControl label handleClick subStyles =
+    button
+        [ onClick handleClick
+        , css styles.button
+        , css subStyles
+        ]
+        [ text label ]
 
 
 viewItem : Int -> Int -> Html msg -> Html msg

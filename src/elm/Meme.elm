@@ -1,24 +1,37 @@
 module Meme exposing (..)
 
-import Css exposing (Style, absolute, alignItems, bottom, center, color, column, displayFlex, flexDirection, hidden, inherit, initial, int, justifyContent, margin, margin2, marginBottom, marginLeft, num, padding, position, property, px, relative, scale, textAlign, top, transform, translate, translate2, translateX, translateY, visibility, width, zIndex, zero)
+import Css exposing (Style, absolute, alignItems, bolder, bottom, center, color, column, deg, displayFlex, flexDirection, fontSize, fontWeight, height, hidden, inherit, initial, int, justifyContent, left, margin, margin2, marginBottom, marginLeft, num, padding, pct, position, property, px, relative, rem, right, rotate, scale, textAlign, top, transform, translate, translate2, translateX, translateY, visibility, width, zIndex, zero)
 import Css.Colors exposing (white)
+import Delay
 import Html.Styled exposing (Html, div, fromUnstyled, h1, img, text)
 import Html.Styled.Attributes exposing (css, src)
 import Images exposing (Asset)
+import InlineSvg exposing (inline)
+import List.Extra
 import Rating
+import String exposing (toUpper)
 import Styles exposing (animatedLoop)
-import Svg.Styled exposing (ellipse, svg)
-import Svg.Styled.Attributes exposing (cx, cy, rx, ry)
+import Svg.Attributes
+import Svg.Styled exposing (ellipse, svg, text_)
+import Svg.Styled.Attributes exposing (alignmentBaseline, cx, cy, rx, ry, stroke, strokeWidth, textAnchor, x, y)
+import Time exposing (millisecond)
+
+
+{ icon } =
+    inline
+        { spikeBubble = "../../assets/spike_bubble.svg"
+        }
+
 
 
 -- MODEL
 
 
-type AnimationState
+type AnimationStep
     = None
     | ShowRating
     | ShowReview Int
-    | Finished
+    | Done
 
 
 type alias Meme =
@@ -31,26 +44,69 @@ type alias Meme =
 
 
 type alias Config msg =
-    { updateAnimation : AnimationState -> msg
+    { updateAnimation : Msg -> msg
+    , animationsEnabled : Bool
     }
 
 
 type alias Context =
-    { animationState : AnimationState }
+    { animationStep : AnimationStep
+    }
 
 
-init : Context
-init =
-    { animationState = None }
+init : Float -> ( Context, Cmd Msg )
+init time =
+    { animationStep = None
+    }
+        ! [ Delay.after time millisecond (AnimateStep ShowRating) ]
+
+
+initFinal : Context
+initFinal =
+    { animationStep = Done
+    }
 
 
 
 -- UPDATE
 
 
-update : AnimationState -> Context
-update animationState =
-    { animationState = animationState }
+type Msg
+    = AnimateStep AnimationStep
+
+
+update : Msg -> Context -> Meme -> ( Context, Cmd Msg )
+update msg context meme =
+    case msg of
+        AnimateStep step ->
+            let
+                delay =
+                    Delay.after 1000 millisecond
+
+                nextCmd =
+                    case step of
+                        ShowRating ->
+                            if List.length meme.reviews > 0 then
+                                delay (AnimateStep <| ShowReview 0)
+                            else
+                                Cmd.none
+
+                        ShowReview index ->
+                            let
+                                nextIndex =
+                                    index + 1
+                            in
+                                if List.length meme.reviews - 1 == nextIndex then
+                                    delay (AnimateStep Done)
+                                else if List.length meme.reviews > nextIndex then
+                                    delay (AnimateStep <| ShowReview nextIndex)
+                                else
+                                    Cmd.none
+
+                        _ ->
+                            Cmd.none
+            in
+                ( { context | animationStep = step }, nextCmd )
 
 
 
@@ -64,6 +120,10 @@ type alias Styles =
     , shadow : List Style
     , title : List Style
     , ratingContainer : List Style
+    , reviewContainer : List Style
+    , review : List Style
+    , reviewInner : List Style
+    , reviewText : List Style
     }
 
 
@@ -72,6 +132,7 @@ styles =
     { root =
         [ displayFlex
         , position relative
+        , width (pct 100)
         , flexDirection column
         , alignItems center
         , justifyContent center
@@ -88,8 +149,7 @@ styles =
         , property "filter" "drop-shadow(-20px 15px 32px rgba(0,0,0,0.7))"
         ]
     , shadow =
-        [ property "filter" "blur(24px) opacity(.6)"
-        , property "animation-name" "swell"
+        [ property "animation-name" "swell"
         , zIndex (int -1)
         , animatedLoop 5
         ]
@@ -102,7 +162,49 @@ styles =
     , ratingContainer =
         [ property "transition" "transform .5s ease"
         ]
+    , reviewContainer =
+        [ position absolute
+        , width (px 250)
+        ]
+    , review =
+        [ property "transition" "transform .1s ease-out"
+        ]
+    , reviewInner =
+        [ position relative
+        , property "animation-name" "twist-small"
+        , animatedLoop 12
+        ]
+    , reviewText =
+        [ position absolute
+        , left (pct 50)
+        , top (pct 50)
+        , transform <| translate2 (pct -50) (pct -50)
+        , color white
+        , fontSize (Css.rem 2.4)
+        , fontWeight bolder
+        ]
     }
+
+
+reviewStyles : List (List Style)
+reviewStyles =
+    [ [ top (px 24)
+      , left (px 24)
+      , transform <| rotate (deg -25)
+      ]
+    , [ top (px 24)
+      , right (px 24)
+      , transform <| rotate (deg 25)
+      ]
+    , [ bottom (px 80)
+      , left (px 24)
+      , transform <| rotate (deg 25)
+      ]
+    , [ bottom (px 80)
+      , right (px 24)
+      , transform <| rotate (deg -25)
+      ]
+    ]
 
 
 
@@ -110,38 +212,21 @@ styles =
 
 
 view : Config msg -> Context -> Meme -> Html msg
-view config context meme =
+view { updateAnimation } { animationStep } meme =
     let
-        visibleStyle =
-            case context.animationState of
+        ratingStyles =
+            case animationStep of
                 None ->
                     [ visibility hidden, transform <| scale 0 ]
 
                 _ ->
                     [ transform <| scale 1 ]
-
-        nextAnimation =
-            config.updateAnimation
-                (case context.animationState of
-                    ShowRating ->
-                        if List.length meme.reviews > 0 then
-                            ShowReview 0
-                        else
-                            Finished
-
-                    ShowReview index ->
-                        if index < (List.length meme.reviews - 1) then
-                            ShowReview <| index + 1
-                        else
-                            Finished
-
-                    _ ->
-                        Finished
-                )
     in
         div [ css styles.root ]
-            [ div [ css styles.imageContainer ]
-                [ div [ css styles.image ]
+            [ div
+                [ css styles.imageContainer ]
+                [ div
+                    [ css styles.image ]
                     [ img
                         [ src <| Images.use meme.image
                         , css meme.styles
@@ -149,15 +234,89 @@ view config context meme =
                         []
                     ]
                 ]
-            , div [ css styles.shadow ]
+            , div
+                [ css styles.shadow ]
                 [ svg []
                     [ ellipse [ cx "150", cy "60", rx "120", ry "25" ] []
                     ]
                 ]
             , h1 [ css styles.title ] [ text <| meme.name ++ " meme" ]
             , div
-                [ css visibleStyle
+                [ css ratingStyles
                 , css styles.ratingContainer
                 ]
                 [ Rating.view meme.rating ]
+            , div [] <|
+                List.indexedMap
+                    (viewConditionalReview animationStep)
+                <|
+                    List.take 4
+                        meme.reviews
             ]
+
+
+viewConditionalReview : AnimationStep -> Int -> String -> Html msg
+viewConditionalReview step index review =
+    let
+        innerReview =
+            viewReview review <|
+                Maybe.withDefault [] <|
+                    List.Extra.getAt index reviewStyles
+
+        hiddenStyles =
+            [ visibility hidden
+            , transform <| scale 0
+            ]
+
+        visibleStyles =
+            [ transform <| scale 1 ]
+    in
+        case step of
+            None ->
+                innerReview
+                    hiddenStyles
+
+            ShowRating ->
+                innerReview
+                    hiddenStyles
+
+            ShowReview activeIndex ->
+                innerReview
+                    (if activeIndex >= index then
+                        visibleStyles
+                     else
+                        [ visibility hidden, transform <| scale 0 ]
+                    )
+
+            Done ->
+                innerReview visibleStyles
+
+
+viewReview : String -> List Style -> List Style -> Html msg
+viewReview review containerStyles innerStyles =
+    div
+        [ css styles.reviewContainer
+        , css containerStyles
+        ]
+        [ div
+            [ css styles.review
+            , css innerStyles
+            ]
+            [ div [ css styles.reviewInner ]
+                [ fromUnstyled (icon .spikeBubble [ Svg.Attributes.color "#ffe404" ])
+                , div [ css styles.reviewText ]
+                    [ Svg.Styled.svg []
+                        [ text_
+                            [ textAnchor "middle"
+                            , alignmentBaseline "central"
+                            , x "50%"
+                            , y "50%"
+                            , stroke "black"
+                            , strokeWidth "2px"
+                            ]
+                            [ Svg.Styled.text <| toUpper review ]
+                        ]
+                    ]
+                ]
+            ]
+        ]

@@ -29,7 +29,7 @@ type alias Model =
     }
 
 
-init : ( Model, Cmd Action )
+init : ( Model, Cmd Msg )
 init =
     ( Model False MemeReview.init YouLaughYouLose.init (Routing.init MemeReview)
     , Cmd.none
@@ -40,48 +40,48 @@ init =
 -- UPDATE
 
 
-type Action
+type Msg
     = EnterSite
-    | RoutingAction (Routing.Action View)
-    | MemeReviewAction MemeReview.Action
-    | YouLaughYouLoseAction YouLaughYouLose.Action
+    | RoutingMsg (Routing.Msg View)
+    | MemeReviewMsg MemeReview.Msg
+    | YouLaughYouLoseMsg YouLaughYouLose.Msg
 
 
-changeView : View -> Action
+changeView : View -> Msg
 changeView view =
-    RoutingAction <| Routing.ChangeView view
+    RoutingMsg <| Routing.ChangeView view
 
 
-update : Action -> Model -> ( Model, Cmd Action )
+update : Msg -> Model -> ( Model, Cmd Msg )
 update msg model =
     case msg of
         EnterSite ->
             { model | visited = True } ! []
 
-        RoutingAction subaction ->
-            { model | routing = Routing.update subaction model.routing } ! []
+        RoutingMsg routingMsg ->
+            { model | routing = Routing.update routingMsg model.routing } ! []
 
-        MemeReviewAction subaction ->
+        MemeReviewMsg memeReviewMsg ->
             let
                 ( updatedModel, cmd ) =
-                    MemeReview.update subaction model.memeReview
+                    MemeReview.update memeReviewMsg model.memeReview
             in
-                ( { model | memeReview = updatedModel }, Cmd.map MemeReviewAction cmd )
+                ( { model | memeReview = updatedModel }, Cmd.map MemeReviewMsg cmd )
 
-        YouLaughYouLoseAction subaction ->
-            { model | youLaughYouLose = YouLaughYouLose.update subaction model.youLaughYouLose } ! []
+        YouLaughYouLoseMsg ylylMsg ->
+            { model | youLaughYouLose = YouLaughYouLose.update ylylMsg model.youLaughYouLose } ! []
 
 
 
 -- SUBSCRIPTIONS
 
 
-subscriptions : Model -> Sub Action
+subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch <|
         case model.routing.activeView of
             MemeReview ->
-                [ Sub.map MemeReviewAction <| MemeReview.subscriptions model.memeReview
+                [ Sub.map MemeReviewMsg <| MemeReview.subscriptions model.memeReview
                 ]
 
             _ ->
@@ -113,7 +113,7 @@ styles =
 -- VIEW
 
 
-view : Model -> Html Action
+view : Model -> Html Msg
 view model =
     let
         header =
@@ -134,14 +134,14 @@ view model =
             ]
 
 
-viewRoute : Model -> View -> Html Action
+viewRoute : Model -> View -> Html Msg
 viewRoute model view =
     case view of
         MemeReview ->
-            Html.map MemeReviewAction <| MemeReview.view model.memeReview
+            Html.map MemeReviewMsg <| MemeReview.view model.memeReview
 
         YouLaughYouLose ->
-            Html.map YouLaughYouLoseAction <| YouLaughYouLose.view model.youLaughYouLose
+            Html.map YouLaughYouLoseMsg <| YouLaughYouLose.view model.youLaughYouLose
 
 
 
@@ -153,7 +153,7 @@ delta2url previous current =
     Maybe.map Builder.toUrlChange <| delta2builder previous current
 
 
-location2messages : Navigation.Location -> List Action
+location2messages : Navigation.Location -> List Msg
 location2messages location =
     builder2messages (Builder.fromUrl location.href)
 
@@ -174,19 +174,19 @@ delta2builder previous current =
                 |> Maybe.map (Builder.prependToPath [ YouLaughYouLose.route ])
 
 
-builder2messages : Builder -> List Action
+builder2messages : Builder -> List Msg
 builder2messages =
     Routing.builder2messages (changeView MemeReview) handleLocation
 
 
-handleLocation : Routing.LocationHandler Action
+handleLocation : Routing.LocationHandler Msg
 handleLocation path builder =
     case path of
         "meme-review" ->
-            (changeView MemeReview) :: List.map MemeReviewAction (MemeReview.builder2messages builder)
+            (changeView MemeReview) :: List.map MemeReviewMsg (MemeReview.builder2messages builder)
 
         "you-laugh-you-lose" ->
-            (changeView YouLaughYouLose) :: List.map YouLaughYouLoseAction (YouLaughYouLose.builder2messages builder)
+            (changeView YouLaughYouLose) :: List.map YouLaughYouLoseMsg (YouLaughYouLose.builder2messages builder)
 
         _ ->
             [ changeView MemeReview ]

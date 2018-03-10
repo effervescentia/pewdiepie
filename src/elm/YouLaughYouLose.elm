@@ -35,13 +35,13 @@ init =
 -- UPDATE
 
 
-type Action
+type Msg
     = Laugh
     | Lose
     | SetCounts Int Int
 
 
-update : Action -> Model -> Model
+update : Msg -> Model -> Model
 update action model =
     case action of
         Laugh ->
@@ -58,7 +58,7 @@ update action model =
 -- VIEW
 
 
-view : Model -> Html Action
+view : Model -> Html Msg
 view model =
     div []
         [ button [ type_ "button", onClick Laugh ] [ text "Laugh" ]
@@ -78,7 +78,7 @@ delta2builder previous current =
         |> Just
 
 
-builder2messages : Builder -> List Action
+builder2messages : Builder -> List Msg
 builder2messages builder =
     case query builder of
         queryParams ->

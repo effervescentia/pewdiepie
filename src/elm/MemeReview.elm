@@ -2,15 +2,17 @@ module MemeReview exposing (..)
 
 import Css exposing (Style, absolute, alignItems, backgroundColor, center, column, displayFlex, flexDirection, height, int, justifyContent, margin, num, padding, pct, position, property, px, transform, translateX, width, zIndex, zero)
 import Css.Colors exposing (black)
+import Delay
 import Html.Styled exposing (Html, button, div, fromUnstyled, text)
 import Html.Styled.Attributes exposing (css, type_)
 import InlineSvg exposing (inline)
 import Keyboard exposing (KeyCode)
-import Meme exposing (AnimationState, AnimationState(ShowRating, Finished))
+import List.Extra
+import Meme
 import Memes exposing (memes)
 import RouteUrl.Builder as Builder exposing (Builder, builder, query, replaceQuery)
 import Slider
-import Transit
+import Time exposing (millisecond)
 
 
 -- CONSTANTS
@@ -29,116 +31,109 @@ route =
 -- MODEL
 
 
-type AnimationState
+type AnimationStep
     = Sliding
-    | AnimatingMeme Meme.AnimationState
+    | AnimatingMeme
     | Done
 
 
 type alias Model =
-    { activeIndex : Int
-    , animationState : AnimationState
+    { sliderState : Slider.Context
+    , animationStep : AnimationStep
     , memeState : Meme.Context
     }
 
 
 init : Model
 init =
-    Model 0 Done Meme.init
+    Model Slider.init Done Meme.initFinal
 
 
 
 -- UPDATE
 
 
-type Action
+type Msg
     = ChangeMeme Int
+    | UpdateSlide Int
     | HandleKeypress KeyCode
-    | UpdateAnimation AnimationState
+    | UpdateAnimation AnimationStep
+    | MemeMsg Meme.Msg
     | None
 
 
-update : Action -> Model -> ( Model, Cmd Action )
-update action model =
-    case action of
-        ChangeMeme index ->
-            { model | activeIndex = index } ! []
+update : Msg -> Model -> ( Model, Cmd Msg )
+update action ({ sliderState, memeState } as model) =
+    let
+        changeSlide index =
+            if index /= sliderState.activeIndex then
+                let
+                    ( updatedMemeState, memeCmd ) =
+                        Meme.init 1000
+                in
+                    { model
+                        | sliderState = { sliderState | activeIndex = index }
+                        , memeState = updatedMemeState
+                        , animationStep = Sliding
+                    }
+                        ! [ Delay.after 1000 millisecond <| UpdateAnimation <| AnimatingMeme
+                          , Cmd.map MemeMsg memeCmd
+                          ]
+            else
+                model ! []
+    in
+        case action of
+            ChangeMeme index ->
+                changeSlide index
 
-        HandleKeypress code ->
-            case model.animationState of
-                Sliding ->
-                    model ! []
+            HandleKeypress code ->
+                case code of
+                    -- left arrow
+                    37 ->
+                        let
+                            newIndex =
+                                max 0 (sliderState.activeIndex - 1)
+                        in
+                            changeSlide newIndex
 
-                _ ->
-                    let
-                        updateActiveIndex index =
-                            { model
-                                | activeIndex = Debug.log "next page" index
-                                , animationState = Sliding
-                                , memeState = Meme.init
-                            }
-                                ! []
-                    in
-                        case code of
-                            -- left arrow
-                            37 ->
-                                let
-                                    newIndex =
-                                        max 0 (model.activeIndex - 1)
-                                in
-                                    if newIndex /= model.activeIndex then
-                                        updateActiveIndex newIndex
-                                    else
-                                        model ! []
+                    -- right arrow
+                    39 ->
+                        let
+                            newIndex =
+                                min (List.length memes - 1) (sliderState.activeIndex + 1)
+                        in
+                            changeSlide newIndex
 
-                            -- right arrow
-                            39 ->
-                                let
-                                    newIndex =
-                                        min (List.length memes - 1) (model.activeIndex + 1)
-                                in
-                                    if newIndex /= model.activeIndex then
-                                        updateActiveIndex newIndex
-                                    else
-                                        model ! []
+                    _ ->
+                        model ! []
 
-                            _ ->
-                                model ! []
+            UpdateSlide index ->
+                { model | sliderState = { sliderState | activeIndex = index } } ! []
 
-        UpdateAnimation animation ->
-            case animation of
-                AnimatingMeme memeAnimation ->
-                    let
-                        memeState =
-                            Meme.update memeAnimation
-                    in
-                        case memeState.animationState of
-                            Finished ->
-                                { model
-                                    | animationState = Done
-                                    , memeState = memeState
-                                }
-                                    ! []
+            UpdateAnimation step ->
+                { model | animationStep = step } ! []
 
-                            _ ->
-                                { model
-                                    | animationState = animation
-                                    , memeState = memeState
-                                }
-                                    ! []
+            MemeMsg memeMsg ->
+                let
+                    ( updatedMemeState, memeCmd ) =
+                        case List.Extra.getAt sliderState.activeIndex memes of
+                            Just meme ->
+                                Meme.update memeMsg memeState meme
 
-                _ ->
-                    { model | animationState = animation } ! []
+                            Nothing ->
+                                memeState ! []
+                in
+                    { model | memeState = updatedMemeState } ! [ Cmd.map MemeMsg memeCmd ]
 
-        None ->
-            model ! []
+            None ->
+                model ! []
 
 
 
 -- SUBSCRIPTIONS
 
 
-subscriptions : Model -> Sub Action
+subscriptions : Model -> Sub Msg
 subscriptions model =
     Sub.batch [ Keyboard.ups HandleKeypress ]
 
@@ -191,25 +186,21 @@ styles =
 -- VIEW
 
 
-view : Model -> Html Action
-view { activeIndex, animationState, memeState } =
+view : Model -> Html Msg
+view { animationStep, sliderState, memeState } =
     div [ css styles.root ]
         [ div [ css styles.spotlight ] [ fromUnstyled (icon .spotlight []) ]
         , div [ css styles.foreground ]
             [ Slider.view
                 { activateIndex = ChangeMeme
-                , completeTransition =
-                    (if animationState == Sliding then
-                        UpdateAnimation <| AnimatingMeme ShowRating
-                     else
-                        None
-                    )
                 }
-                { activeIndex = activeIndex }
+                sliderState
               <|
                 List.map
                     (Meme.view
-                        { updateAnimation = \animation -> UpdateAnimation <| AnimatingMeme animation }
+                        { updateAnimation = MemeMsg
+                        , animationsEnabled = animationStep == AnimatingMeme
+                        }
                         memeState
                     )
                     Memes.memes
@@ -226,6 +217,6 @@ delta2builder previous current =
     Just builder
 
 
-builder2messages : Builder -> List Action
+builder2messages : Builder -> List Msg
 builder2messages builder =
     []
