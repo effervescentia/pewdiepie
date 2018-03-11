@@ -64,7 +64,10 @@ jobs:
           key: node_cache-v1-{{ .Branch }}
       - run:
           name: Deploy to Github
-          command: yarn deploy
+          command: |
+            git config user.email "ops@circleci.com"
+            git config user.name "Circle CI"
+            yarn deploy
 
 
 workflows:
