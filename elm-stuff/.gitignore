@@ -1,2 +1,3 @@
 packages/
 build-artifacts/
+exact-dependencies.json
