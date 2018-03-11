@@ -65,8 +65,8 @@ jobs:
       - run:
           name: Deploy to Github
           command: |
-            git config user.email "ops@circleci.com"
-            git config user.name "Circle CI"
+            git config --global user.email "ops@circleci.com"
+            git config --global user.name "Circle CI"
             yarn deploy
 
 
