@@ -7,6 +7,7 @@
   "license": "MIT",
   "private": true,
   "scripts": {
+    "postinstall": "elm-package install",
     "build": "webpack",
     "build:production": "webpack -p",
     "start": "webpack-dev-server --open",
