@@ -8,6 +8,7 @@
   "private": true,
   "scripts": {
     "build": "webpack",
+    "build:production": "webpack -p",
     "start": "webpack-dev-server --open"
   },
   "devDependencies": {
