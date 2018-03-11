@@ -8,6 +8,6 @@ animatedLoop duration =
     Css.batch
         [ property "animation-duration" <| (toString duration) ++ "s"
         , property "animation-fill-mode" "both"
-        , property "animation-timing-function" "linear"
+        , property "animation-timing-function" "ease-in-out"
         , property "animation-iteration-count" "infinite"
         ]

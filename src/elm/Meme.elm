@@ -1,7 +1,7 @@
 module Meme exposing (..)
 
 import Css exposing (Style, absolute, alignItems, bolder, bottom, center, color, column, deg, displayFlex, flexDirection, fontSize, fontWeight, height, hidden, inherit, initial, int, justifyContent, left, margin, margin2, marginBottom, marginLeft, num, padding, pct, position, property, px, relative, rem, right, rotate, scale, textAlign, top, transform, translate, translate2, translateX, translateY, visibility, width, zIndex, zero)
-import Css.Colors exposing (white)
+import Css.Colors exposing (black, white)
 import Delay
 import Html.Styled exposing (Html, div, fromUnstyled, h1, img, text)
 import Html.Styled.Attributes exposing (css, src)
@@ -12,8 +12,8 @@ import Rating
 import String exposing (toUpper)
 import Styles exposing (animatedLoop)
 import Svg.Attributes
-import Svg.Styled exposing (ellipse, svg, text_)
-import Svg.Styled.Attributes exposing (alignmentBaseline, cx, cy, rx, ry, stroke, strokeWidth, textAnchor, x, y)
+import Svg.Styled exposing (ellipse, svg, text_, tspan)
+import Svg.Styled.Attributes exposing (alignmentBaseline, cx, cy, dy, rx, ry, stroke, strokeWidth, textAnchor, x, y)
 import Time exposing (millisecond)
 
 
@@ -38,7 +38,7 @@ type alias Meme =
     { name : String
     , rating : String
     , image : Asset
-    , reviews : List String
+    , reviews : List ( List String, Float, Float )
     , styles : List Style
     }
 
@@ -59,12 +59,6 @@ init time =
     { animationStep = None
     }
         ! [ Delay.after time millisecond (AnimateStep ShowRating) ]
-
-
-initFinal : Context
-initFinal =
-    { animationStep = Done
-    }
 
 
 
@@ -173,14 +167,15 @@ styles =
         [ position relative
         , property "animation-name" "twist-small"
         , animatedLoop 12
+        , property "filter" "drop-shadow(-8px 5px 16px rgba(0,0,0,0.7))"
         ]
     , reviewText =
         [ position absolute
         , left (pct 50)
         , top (pct 50)
         , transform <| translate2 (pct -50) (pct -50)
-        , color white
-        , fontSize (Css.rem 2.4)
+        , color black
+        , fontSize (Css.rem 2)
         , fontWeight bolder
         ]
     }
@@ -255,7 +250,7 @@ view { updateAnimation } { animationStep } meme =
             ]
 
 
-viewConditionalReview : AnimationStep -> Int -> String -> Html msg
+viewConditionalReview : AnimationStep -> Int -> ( List String, Float, Float ) -> Html msg
 viewConditionalReview step index review =
     let
         innerReview =
@@ -292,8 +287,8 @@ viewConditionalReview step index review =
                 innerReview visibleStyles
 
 
-viewReview : String -> List Style -> List Style -> Html msg
-viewReview review containerStyles innerStyles =
+viewReview : ( List String, Float, Float ) -> List Style -> List Style -> Html msg
+viewReview ( reviews, fontSize, offset ) containerStyles innerStyles =
     div
         [ css styles.reviewContainer
         , css containerStyles
@@ -310,13 +305,32 @@ viewReview review containerStyles innerStyles =
                             [ textAnchor "middle"
                             , alignmentBaseline "central"
                             , x "50%"
-                            , y "50%"
-                            , stroke "black"
-                            , strokeWidth "2px"
+                            , y (toString offset ++ "%")
+
+                            -- , stroke "black"
+                            -- , strokeWidth "1px"
+                            , Svg.Styled.Attributes.fontSize (toString fontSize ++ "em")
                             ]
-                            [ Svg.Styled.text <| toUpper review ]
+                          <|
+                            List.indexedMap viewReviewText reviews
                         ]
                     ]
                 ]
             ]
+        ]
+
+
+viewReviewText : Int -> String -> Html msg
+viewReviewText index review =
+    tspan
+        [ textAnchor "middle"
+        , x "50%"
+        , dy
+            (if index == 0 then
+                "0"
+             else
+                "1.2em"
+            )
+        ]
+        [ Svg.Styled.text <| toUpper review
         ]
