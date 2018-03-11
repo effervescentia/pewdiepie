@@ -1,0 +1,79 @@
+defaults:
+  node_cache: &node_cache
+    key: node_cache-v1-{{ .Branch }}-{{ checksum "yarn.lock" }}
+  elm_cache: &elm_cache
+    key: elm_cache-v1-{{ .Branch }}-{{ checksum "elm-package.json" }}
+  build_cache: &build_cache
+    key: build_cache-v1-{{ .Branch }}-{{ epoch }}
+  node_image: &node_image
+    docker:
+      - image: circleci/node:9.3
+    working_directory: ~/repo
+
+version: 2
+
+jobs:
+  build:
+    <<: *node_image
+    steps:
+      - checkout
+      - restore_cache:
+          <<: *node_cache
+      - run:
+          name: Dependencies
+          command: |
+            yarn global add greenkeeper-lockfile@1
+            echo 'export PATH=$HOME/.yarn/bin:$PATH' >> $BASH_ENV
+      - run:
+          name: Install
+          command: yarn
+      - run:
+          name: Update Lockfile
+          command: greenkeeper-lockfile-update
+      - run:
+          name: Build
+          command: yarn build:production
+      - run:
+          name: Upload Lockfile
+          command: greenkeeper-lockfile-upload
+      - run:
+          name: Revert Lockfile
+          command: git checkout yarn.lock
+      - save_cache:
+          <<: *build_cache
+          paths:
+            - ~/repo/dist
+      - save_cache:
+          <<: *node_cache
+          paths:
+            - ~/repo/node_modules
+      - save_cache:
+          <<: *elm_cache
+          paths:
+            - ~/repo/elm-stuff/packages
+
+  deploy:
+    <<: *node_image
+    steps:
+      - checkout
+      - restore_cache:
+          key: build_cache-v1-{{ .Branch }}
+      - restore_cache:
+          key: elm_cache-v1-{{ .Branch }}
+      - run:
+          name: Deploy to Github
+          command: yarn deploy
+
+
+workflows:
+  version: 2
+
+  build_test_release:
+    jobs:
+      - build
+      - deploy:
+          requires:
+            - build
+          filters:
+            branches:
+              only: master
