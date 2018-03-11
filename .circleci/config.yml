@@ -19,6 +19,8 @@ jobs:
       - checkout
       - restore_cache:
           <<: *node_cache
+      - restore_cache:
+          <<: *elm_cache
       - run:
           name: Dependencies
           command: |
@@ -59,7 +61,7 @@ jobs:
       - restore_cache:
           key: build_cache-v1-{{ .Branch }}
       - restore_cache:
-          key: elm_cache-v1-{{ .Branch }}
+          key: node_cache-v1-{{ .Branch }}
       - run:
           name: Deploy to Github
           command: yarn deploy
