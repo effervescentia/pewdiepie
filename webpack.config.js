@@ -33,7 +33,8 @@ module.exports = {
           loader: 'elm-assets-loader',
           options: {
             module: 'Images',
-            tagger: 'Asset'
+            tagger: 'Asset',
+            package: 'effervescentia/pewdiepie',
           }
         },
         'elm-svg-loader',
@@ -58,6 +59,9 @@ module.exports = {
     }, {
       test: /\.(jpe?g|png|gif)$/i,
       loader: 'file-loader',
+      options: {
+        name: '[name]-[hash].[ext]',
+      },
     }],
   },
 
