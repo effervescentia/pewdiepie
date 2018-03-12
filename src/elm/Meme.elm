@@ -37,6 +37,8 @@ type AnimationStep
 type alias Meme =
     { name : String
     , rating : String
+    , infoUrl : String
+    , videoUrl : String
     , image : Asset
     , reviews : List ( List String, Float, Float )
     , styles : List Style
