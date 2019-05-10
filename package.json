@@ -11,7 +11,8 @@
     "build": "webpack",
     "build:production": "webpack -p",
     "start": "webpack-dev-server --open",
-    "deploy": "gh-pages -d dist"
+    "deploy": "gh-pages -d dist",
+    "now-build": "npm run build:production"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",
